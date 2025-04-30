@@ -24,7 +24,7 @@ jobs:
     name: Build wheels on ${{ matrix.os }}
 
     permissions:
-      contents: write # svenstaro/upload-release-action 
+      contents: write # svenstaro/upload-release-action
 
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -71,6 +71,7 @@ jobs:
           CIBW_ARCHS_WINDOWS: auto ARM64
           CIBW_SKIP: "pp* *-musllinux_*"
           CIBW_BUILD_VERBOSITY: 1
+          CIBW_ENABLE: cpython-freethreading
 
       - name: Build sdist archive
         working-directory: ${{github.workspace}}/python
