@@ -24,11 +24,15 @@ import io
 import os
 import pickle
 import unittest
+import threading
 import sentencepiece as spm
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+print(HERE)
 
 print('VERSION={}'.format(spm.__version__))
 
-data_dir = 'test'
+data_dir = HERE
 if sys.platform == 'win32':
   data_dir = os.path.join('..', 'data')
 
@@ -39,13 +43,13 @@ class TestSentencepieceProcessor(unittest.TestCase):
   def setUp(self):
     self.sp_ = spm.SentencePieceProcessor()
     self.jasp_ = spm.SentencePieceProcessor()
-    self.assertTrue(self.sp_.Load(os.path.join('test', 'test_model.model')))
+    self.assertTrue(self.sp_.Load(os.path.join(HERE, 'test_model.model')))
     self.assertTrue(
-        self.jasp_.Load(os.path.join('test', 'test_ja_model.model'))
+        self.jasp_.Load(os.path.join(HERE, 'test_ja_model.model'))
     )
-    with open(os.path.join('test', 'test_model.model'), 'rb') as f:
+    with open(os.path.join(HERE, 'test_model.model'), 'rb') as f:
       self.assertTrue(self.sp_.LoadFromSerializedProto(f.read()))
-    with open(os.path.join('test', 'test_ja_model.model'), 'rb') as f:
+    with open(os.path.join(HERE, 'test_ja_model.model'), 'rb') as f:
       self.assertTrue(self.jasp_.LoadFromSerializedProto(f.read()))
 
   def test_load(self):
@@ -207,23 +211,25 @@ class TestSentencepieceProcessor(unittest.TestCase):
       )
 
   def test_train(self):
+    tid = threading.get_native_id()
     spm.SentencePieceTrainer.Train(
         '--input='
         + os.path.join(data_dir, 'botchan.txt')
-        + ' --model_prefix=m --vocab_size=1000'
+        + f' --model_prefix=m_{tid} --vocab_size=1000'
     )
     sp = spm.SentencePieceProcessor()
-    sp.Load('m.model')
+    sp.Load(f'm_{tid}.model')
     with open(os.path.join(data_dir, 'botchan.txt'), 'r') as file:
       for line in file:
         sp.DecodePieces(sp.EncodeAsPieces(line))
         sp.DecodeIds(sp.EncodeAsIds(line))
 
   def test_train_iterator(self):
+    tid = threading.get_native_id()
     spm.SentencePieceTrainer.Train(
         '--input='
         + os.path.join(data_dir, 'botchan.txt')
-        + ' --model_prefix=m --vocab_size=1000'
+        + f' --model_prefix=m_{tid} --vocab_size=1000'
     )
     # Load as 'rb' for Python3.5/2.7.
     os1 = io.BytesIO()
@@ -232,24 +238,24 @@ class TestSentencepieceProcessor(unittest.TestCase):
     # suppress logging (redirect to /dev/null)
     spm.SentencePieceTrainer.train(
         input=os.path.join(data_dir, 'botchan.txt'),
-        model_prefix='m',
+        model_prefix=f'm_{tid}',
         vocab_size=1000,
-        logstream=open(os.devnull, 'w'),
+        # logstream=open(os.devnull, 'w'),
     )
 
     with open(os.path.join(data_dir, 'botchan.txt'), 'rb') as is1:
       spm.SentencePieceTrainer.train(
           sentence_iterator=is1,
-          model_prefix='m',
+          model_prefix=f'm_{tid}',
           vocab_size=1000,
-          logstream=open(os.devnull, 'w'),
+          # logstream=open(os.devnull, 'w'),
       )
 
     spm.SentencePieceTrainer.train(
         input=os.path.join(data_dir, 'botchan.txt'),
         model_writer=os1,
         vocab_size=1000,
-        logstream=open(os.devnull, 'w'),
+        # logstream=open(os.devnull, 'w'),
     )
 
     with open(os.path.join(data_dir, 'botchan.txt'), 'rb') as is2:
@@ -257,7 +263,7 @@ class TestSentencepieceProcessor(unittest.TestCase):
           sentence_iterator=is2,
           model_writer=os2,
           vocab_size=1000,
-          logstream=open(os.devnull, 'w'),
+          # logstream=open(os.devnull, 'w'),
       )
 
     sp1 = spm.SentencePieceProcessor(model_proto=os1.getvalue())
@@ -268,16 +274,17 @@ class TestSentencepieceProcessor(unittest.TestCase):
     )
 
   def test_train_kwargs(self):
+    tid = threading.get_native_id()
     # suppress logging (redirect to /dev/null)
     spm.SentencePieceTrainer.train(
         input=[os.path.join(data_dir, 'botchan.txt')],
-        model_prefix='m',
+        model_prefix=f'm_{tid}',
         vocab_size=1002,
         user_defined_symbols=['foo', 'bar', ',', ' ', '\t', '\b', '\n', '\r'],
-        logstream=open(os.devnull, 'w'),
+        # logstream=open(os.devnull, 'w'),
     )
     sp = spm.SentencePieceProcessor()
-    sp.Load('m.model')
+    sp.Load(f'm_{tid}.model')
     with open(os.path.join(data_dir, 'botchan.txt'), 'r') as file:
       for line in file:
         sp.DecodePieces(sp.EncodeAsPieces(line))
@@ -487,7 +494,7 @@ class TestSentencepieceProcessor(unittest.TestCase):
 
   def test_new_api(self):
     sp = spm.SentencePieceProcessor(
-        model_file=os.path.join('test', 'test_model.model')
+        model_file=os.path.join(HERE, 'test_model.model')
     )
     text = 'hello world'
     text2 = 'Tokyo'
@@ -582,7 +589,7 @@ class TestSentencepieceProcessor(unittest.TestCase):
 
   def test_new_api_init(self):
     sp = spm.SentencePieceProcessor(
-        model_file=os.path.join('test', 'test_model.model'),
+        model_file=os.path.join(HERE, 'test_model.model'),
         add_bos=True,
         add_eos=True,
         out_type=str,
@@ -744,7 +751,7 @@ class TestSentencepieceProcessor(unittest.TestCase):
 
   def test_batch(self):
     sp = spm.SentencePieceProcessor(
-        model_file=os.path.join('test', 'test_model.model')
+        model_file=os.path.join(HERE, 'test_model.model')
     )
     with open(os.path.join(data_dir, 'botchan.txt'), 'r') as file:
       texts = file.readlines()
@@ -799,7 +806,7 @@ class TestSentencepieceProcessor(unittest.TestCase):
 
   def test_normalize(self):
     sp = spm.SentencePieceProcessor(
-        model_file=os.path.join('test', 'test_model.model')
+        model_file=os.path.join(HERE, 'test_model.model')
     )
 
     self.assertEqual('▁KADOKAWAABC', sp.normalize('ＫＡＤＯＫＡＷＡABC'))
@@ -842,7 +849,7 @@ class TestSentencepieceProcessor(unittest.TestCase):
 
   def test_normalizer(self):
     sp = spm.SentencePieceNormalizer(
-        model_file=os.path.join('test', 'test_model.model')
+        model_file=os.path.join(HERE, 'test_model.model')
     )
 
     self.assertEqual('KADOKAWAABC', sp.normalize('ＫＡＤＯＫＡＷＡABC'))
@@ -879,7 +886,7 @@ class TestSentencepieceProcessor(unittest.TestCase):
     self.assertEqual([0, 0, 1], x[1][1])
 
     sp = spm.SentencePieceNormalizer(
-        model_file=os.path.join('test', 'test_model.model'),
+        model_file=os.path.join(HERE, 'test_model.model'),
         add_dummy_prefix=True,
         escape_whitespaces=True,
         remove_extra_whitespaces=False,
@@ -887,7 +894,7 @@ class TestSentencepieceProcessor(unittest.TestCase):
     self.assertEqual('▁hello▁▁world', sp.normalize('hello  world'))
 
     sp = spm.SentencePieceNormalizer(
-        model_file=os.path.join('test', 'test_model.model'),
+        model_file=os.path.join(HERE, 'test_model.model'),
         add_dummy_prefix=True,
         escape_whitespaces=True,
         remove_extra_whitespaces=True,
@@ -895,7 +902,7 @@ class TestSentencepieceProcessor(unittest.TestCase):
     self.assertEqual('▁hello▁world', sp.normalize('  hello  world  '))
 
     sp = spm.SentencePieceNormalizer(
-        model_file=os.path.join('test', 'test_model.model'),
+        model_file=os.path.join(HERE, 'test_model.model'),
         add_dummy_prefix=False,
         escape_whitespaces=False,
         remove_extra_whitespaces=True,
@@ -911,7 +918,7 @@ class TestSentencepieceProcessor(unittest.TestCase):
 
   def test_override_normalize_spec(self):
     sp = spm.SentencePieceProcessor(
-        model_file=os.path.join('test', 'test_model.model')
+        model_file=os.path.join(HERE, 'test_model.model')
     )
 
     self.assertEqual(
