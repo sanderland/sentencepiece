@@ -15,7 +15,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ ubuntu-latest, ubuntu-20.04, windows-latest, macOS-11 ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         arch: [ x64 ]
         include:
           - os: windows-latest
@@ -70,7 +70,7 @@ jobs:
     - name: Upload artifcacts
       uses: actions/upload-artifact@v4
       with:
-        name:  ${{matrix.version}}-artifcacts
+        name:  ${{matrix.arch}}-artifcacts
         path: ./build/*.7z
         overwrite: true
 
