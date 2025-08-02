@@ -94,10 +94,11 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifacts
+          name:  ${{matrix.version}}-artifcacts
           path: |
             ./python/wheelhouse/*.whl
             ./python/wheelhouse/*.tar.gz
+          overwrite: true
 
       - name: Upload wheel release
         if: startsWith(github.ref, 'refs/tags/')
