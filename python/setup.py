@@ -33,7 +33,9 @@ def long_description():
   return long_description
 
 
-exec(open('src/sentencepiece/_version.py').read())
+with open('src/sentencepiece/_version.py') as f:
+  line = f.readline().strip()
+  __version__ = line.split('=')[1].strip().strip("'")
 
 
 def run_pkg_config(section, pkg_config_path=None):
