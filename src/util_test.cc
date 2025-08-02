@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.!
 
+#include "util.h"
+
 #include <map>
 
 #include "filesystem.h"
 #include "testharness.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "util.h"
 
 namespace sentencepiece {
 namespace {
@@ -229,6 +230,7 @@ TEST(UtilTest, EncodeUTF8Test) {
   for (char32 cp = 1; cp <= kMaxUnicode; ++cp) {
     if (!string_util::IsValidCodepoint(cp)) continue;
     const size_t mblen = string_util::EncodeUTF8(cp, buf);
+    EXPECT_EQ(mblen, string_util::UTF8Length(cp));
     size_t mblen2;
     const char32 c = string_util::DecodeUTF8(buf, buf + 16, &mblen2);
     EXPECT_EQ(mblen2, mblen);
@@ -236,15 +238,18 @@ TEST(UtilTest, EncodeUTF8Test) {
   }
 
   EXPECT_EQ(1, string_util::EncodeUTF8(0, buf));
+  EXPECT_EQ(1, string_util::UTF8Length(0));
   EXPECT_EQ('\0', buf[0]);
 
   // non UCS4
   size_t mblen;
   EXPECT_EQ(3, string_util::EncodeUTF8(0x7000000, buf));
+  EXPECT_EQ(3, string_util::UTF8Length(0x7000000));
   EXPECT_EQ(kUnicodeError, string_util::DecodeUTF8(buf, buf + 16, &mblen));
   EXPECT_EQ(3, mblen);
 
   EXPECT_EQ(3, string_util::EncodeUTF8(0x8000001, buf));
+  EXPECT_EQ(3, string_util::UTF8Length(0x8000001));
   EXPECT_EQ(kUnicodeError, string_util::DecodeUTF8(buf, buf + 16, &mblen));
   EXPECT_EQ(3, mblen);
 }

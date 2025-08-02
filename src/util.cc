@@ -15,6 +15,7 @@
 #include "util.h"
 
 #include <atomic>
+#include <cstddef>
 #include <iostream>
 #include <memory>
 

@@ -8,7 +8,7 @@ version = "0.2.1"
 authors = [
   { name="Taku Kudo", email="taku@gogle.com" },
 ]
-description = "Unsupervised text tokenizer and detokenizer "
+description = "Unsupervised text tokenizer and detokenizer."
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [

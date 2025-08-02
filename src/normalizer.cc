@@ -14,6 +14,7 @@
 
 #include "normalizer.h"
 
+#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -47,12 +48,12 @@ Normalizer::~Normalizer() {}
 void Normalizer::Init() {
   absl::string_view index = spec_->precompiled_charsmap();
   if (!index.empty()) {
-    absl::string_view trie_blob, normalized;
+    absl::string_view trie_blob;
 #ifdef IS_BIG_ENDIAN
-    status_ = DecodePrecompiledCharsMap(index, &trie_blob, &normalized,
+    status_ = DecodePrecompiledCharsMap(index, &trie_blob, &normalized_,
                                         &precompiled_charsmap_buffer_);
 #else
-    status_ = DecodePrecompiledCharsMap(index, &trie_blob, &normalized);
+    status_ = DecodePrecompiledCharsMap(index, &trie_blob, &normalized_);
 #endif
     if (!status_.ok()) return;
 
@@ -63,8 +64,6 @@ void Normalizer::Init() {
     // but the number of double array units.
     trie_->set_array(const_cast<char *>(trie_blob.data()),
                      trie_blob.size() / trie_->unit_size());
-
-    normalized_ = normalized.data();
   }
 }
 
@@ -80,7 +79,7 @@ util::Status Normalizer::Normalize(absl::string_view input,
 
   RETURN_IF_ERROR(status());
 
-  int consumed = 0;
+  size_t consumed = 0;
 
   // Ignores heading space.
   if (spec_->remove_extra_whitespaces()) {
@@ -228,7 +227,8 @@ std::pair<absl::string_view, int> Normalizer::NormalizePrefix(
     }
   }
 
-  if (longest_length == 0) {
+  if (longest_length == 0 || longest_length > input.size() ||
+      longest_value >= normalized_.size()) {
     size_t length = 0;
     if (!string_util::IsValidDecodeUTF8(input, &length)) {
       // Found a malformed utf8.
@@ -246,7 +246,7 @@ std::pair<absl::string_view, int> Normalizer::NormalizePrefix(
     result.second = longest_length;
     // No need to pass the size of normalized sentence,
     // since |normalized| is delimitered by "\0".
-    result.first = absl::string_view(&normalized_[longest_value]);
+    result.first = normalized_.data() + longest_value;
   }
 
   return result;
@@ -290,12 +290,18 @@ util::Status Normalizer::DecodePrecompiledCharsMap(
     return util::InternalError("Trie data size exceeds the input blob size.");
   }
 
+  // Dart unit_size is 4 and blob size in units must be a multiple of 256.
+  if (trie_blob_size < 1024 || (trie_blob_size & 0x3FF) != 0) {
+    return util::InternalError("Trie data size is not divisible by 1024.");
+  }
+
   blob.remove_prefix(sizeof(trie_blob_size));
 
 #ifdef IS_BIG_ENDIAN
   CHECK_OR_RETURN(buffer);
   buffer->assign(blob.data(), trie_blob_size);
-  uint32_t *data = reinterpret_cast<uint32_t *>(const_cast<char *>(buffer->data()));
+  uint32_t *data =
+      reinterpret_cast<uint32_t *>(const_cast<char *>(buffer->data()));
   for (int i = 0; i < buffer->size() / 4; ++i) data[i] = util::Swap32(data[i]);
   *trie_blob = absl::string_view(buffer->data(), trie_blob_size);
 #else
@@ -304,6 +310,10 @@ util::Status Normalizer::DecodePrecompiledCharsMap(
 
   blob.remove_prefix(trie_blob_size);
   *normalized = absl::string_view(blob.data(), blob.size());
+
+  if (normalized->empty() || normalized->back() != '\0') {
+    return util::InternalError("normalized block must be null terminated.");
+  }
 
   return util::OkStatus();
 }

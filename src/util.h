@@ -177,6 +177,21 @@ inline bool IsValidDecodeUTF8(absl::string_view input, size_t *mblen) {
 
 size_t EncodeUTF8(char32 c, char *output);
 
+// Return the length of the UTF-8 character in bytes.
+inline size_t UTF8Length(char32 c) {
+  if (c <= 0x7F) {
+    return 1;
+  }
+  if (c <= 0x7FF) {
+    return 2;
+  }
+  // If `c` is out of range, we consider it as kUnicodeError, which is 3 bytes.
+  if (c <= 0xFFFF || c > 0x10FFFF) {
+    return 3;
+  }
+  return 4;
+}
+
 std::string UnicodeCharToUTF8(const char32 c);
 
 UnicodeText UTF8ToUnicodeText(absl::string_view utf8);
