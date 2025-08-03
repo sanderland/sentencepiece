@@ -94,7 +94,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name:  ${{matrix.os}}-artifcacts
+          name: artifacts-${{ matrix.os }}-${{ matrix.arch }}
           path: |
             ./python/wheelhouse/*.whl
             ./python/wheelhouse/*.tar.gz
@@ -126,7 +126,7 @@ jobs:
         if: runner.os == 'Windows'
         run: echo "digests=$(sha256sum ./python/wheelhouse/* | base64 -w0)" >> $GITHUB_OUTPUT
 
-  gather-disgests:
+  gather-digests:
     needs: [build_wheels]
     outputs:
       digests: ${{ steps.hash.outputs.digests }}
@@ -147,12 +147,12 @@ jobs:
 
   provenance:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [build_wheels, gather-disgests]
+    needs: [build_wheels, gather-digests]
     permissions:
       actions: read   # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
-      base64-subjects: "${{ needs.gather-disgests.outputs.digests }}"
+      base64-subjects: "${{ needs.gather-digests.outputs.digests }}"
       upload-assets: true # Optional: Upload to a new release

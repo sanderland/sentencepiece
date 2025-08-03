@@ -17,12 +17,10 @@
 import codecs
 import os
 import platform
-import string
 import subprocess
 import sys
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext as _build_ext
-from setuptools.command.build_py import build_py as _build_py
 
 sys.path.append(os.path.join('.', 'test'))
 
@@ -187,15 +185,7 @@ else:
 
 setup(
     name='sentencepiece',
-    author='Taku Kudo',
-    author_email='taku@google.com',
-    description='SentencePiece python wrapper',
-    long_description=long_description(),
-    long_description_content_type='text/markdown',
-    version=__version__,
     package_dir={'': 'src'},
-    url='https://github.com/google/sentencepiece',
-    platforms='Unix',
     py_modules=[
         'sentencepiece/__init__',
         'sentencepiece/_version',
@@ -204,21 +194,4 @@ setup(
     ],
     ext_modules=[SENTENCEPIECE_EXT],
     cmdclass=cmdclass,
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: Unix',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11',
-        'Programming Language :: Python :: 3.12',
-        'Programming Language :: Python :: 3.13',
-        'Topic :: Text Processing :: Linguistic',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-    ],
 )

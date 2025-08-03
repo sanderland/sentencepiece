@@ -67,10 +67,10 @@ jobs:
         python -m pip install -v .
         python -m pytest
 
-    - name: Upload artifcacts
+    - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name:  ${{matrix.arch}}-artifcacts
+        name: artifacts-${{ matrix.os }}-${{ matrix.arch }}
         path: ./build/*.7z
         overwrite: true
 
