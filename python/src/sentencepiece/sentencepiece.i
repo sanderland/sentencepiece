@@ -194,6 +194,10 @@ inline void CheckIds(const std::vector<int> &ids, int num_pieces) {
 
 inline void CheckIds(const std::vector<absl::string_view> &ids, int num_pieces) {}
 
+inline void CheckIdsBatch(const std::vector<std::vector<int>> &ids, int num_pieces) {
+  for (const auto &v : ids) CheckIds(v, num_pieces);
+}
+
 template <typename T>
 inline void ConvertToUnicodeSpans(T *proto) {}
 
@@ -276,7 +280,6 @@ inline void InitNumThreads(const std::vector<T> &ins, int *num_threads) {
       pool.Schedule([&]() {                                             \
           size_t i = 0;                                                 \
           while ((i = std::atomic_fetch_add(&index, 1)) < outs.size()) { \
-            CheckIds(ins[i], self->GetPieceSize());                     \
             auto out = self->FuncName(ins[i]);                          \
             ConvertToUnicodeSpans(&out);                                \
             outs[i] = std::move(out);                                   \
@@ -523,16 +526,19 @@ inline void InitNumThreads(const std::vector<T> &ins, int *num_threads) {
   // DecodeAs* (Batch request)
   std::vector<std::string> _DecodeIdsBatch(
       const std::vector<std::vector<int>> &ins, int num_threads) const {
+    CheckIdsBatch(ins, $self->GetPieceSize());
     DEFINE_DECODE_BATCH_FUNC_IMPL(DecodeIds, int, std::string);
   }
 
   BytesArray _DecodeIdsAsBytesBatch(
       const std::vector<std::vector<int>> &ins, int num_threads) const {
+    CheckIdsBatch(ins, $self->GetPieceSize());
     DEFINE_DECODE_BATCH_FUNC_IMPL(DecodeIds, int, std::string);
   }
 
   BytesArray _DecodeIdsAsSerializedProtoBatch(
       const std::vector<std::vector<int>> &ins, int num_threads) const {
+    CheckIdsBatch(ins, $self->GetPieceSize());
     DEFINE_DECODE_BATCH_FUNC_IMPL(DecodeIdsAsSerializedProto, int,
                                   sentencepiece::util::bytes);
   }
@@ -540,6 +546,7 @@ inline void InitNumThreads(const std::vector<T> &ins, int *num_threads) {
   std::vector<sentencepiece::ImmutableSentencePieceText>
       _DecodeIdsAsImmutableProtoBatch(
           const std::vector<std::vector<int>> &ins, int num_threads) const {
+    CheckIdsBatch(ins, $self->GetPieceSize());
     DEFINE_DECODE_BATCH_FUNC_IMPL(DecodeIdsAsImmutableProto, int,
                                   sentencepiece::ImmutableSentencePieceText);
   }
