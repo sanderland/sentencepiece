@@ -13,6 +13,7 @@
 // limitations under the License.!
 
 #include <functional>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -38,7 +39,7 @@ ABSL_FLAG(std::string, extra_options, "",
           "':' separated encoder extra options, e.g., \"reverse:bos:eos\"");
 ABSL_FLAG(int32, nbest_size, 10, "NBest size");
 ABSL_FLAG(double, alpha, 0.5, "Smoothing parameter for sampling mode.");
-ABSL_FLAG(uint32, random_seed, static_cast<uint32>(-1),
+ABSL_FLAG(uint32, random_seed, std::numeric_limits<uint32>::max(),
           "Seed value for random generator.");
 
 // Piece restriction with vocabulary file.
@@ -64,7 +65,7 @@ int main(int argc, char *argv[]) {
     rest_args.push_back(absl::GetFlag(FLAGS_input));
   }
 
-  if (absl::GetFlag(FLAGS_random_seed) != -1) {
+  if (absl::GetFlag(FLAGS_random_seed) != std::numeric_limits<uint32>::max()) {
     sentencepiece::SetRandomGeneratorSeed(absl::GetFlag(FLAGS_random_seed));
   }
 

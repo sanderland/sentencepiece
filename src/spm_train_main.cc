@@ -146,7 +146,7 @@ ABSL_FLAG(std::string, unk_surface, kDefaultTrainerSpec.unk_surface(),
 ABSL_FLAG(bool, train_extremely_large_corpus,
           kDefaultTrainerSpec.train_extremely_large_corpus(),
           "Increase bit depth for unigram tokenization.");
-ABSL_FLAG(uint32, random_seed, static_cast<uint32>(-1),
+ABSL_FLAG(uint32, random_seed, std::numeric_limits<uint32>::max(),
           "Seed value for random generator.");
 
 // DP related.
@@ -172,7 +172,7 @@ int main(int argc, char *argv[]) {
   CHECK(!absl::GetFlag(FLAGS_input).empty());
   CHECK(!absl::GetFlag(FLAGS_model_prefix).empty());
 
-  if (absl::GetFlag(FLAGS_random_seed) != -1) {
+  if (absl::GetFlag(FLAGS_random_seed) != std::numeric_limits<uint32>::max()) {
     sentencepiece::SetRandomGeneratorSeed(absl::GetFlag(FLAGS_random_seed));
   }
 
