@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <limits>
 #include <memory>
 #include <set>
 #include <string>
@@ -219,7 +220,8 @@ bool TrainerInterface::IsValidSentencePiece(
   }
 
   constexpr unicode_script::ScriptType kAnyType =
-      static_cast<unicode_script::ScriptType>(-1);
+      static_cast<unicode_script::ScriptType>(
+          std::numeric_limits<char32>::max());
 
   unicode_script::ScriptType prev_script = kAnyType;
   bool all_whitespace_piece =
