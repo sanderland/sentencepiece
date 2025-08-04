@@ -134,8 +134,9 @@ def copy_package_data():
   if not os.path.exists(package_data):
     os.makedirs(package_data)
 
-  for fielname in data:
-    shutil.copy(fielname, package_data)
+  for filename in data:
+    print('copying {} -> {}'.format(filename, package_data))
+    shutil.copy(filename, package_data)
 
 
 def get_win_arch():
@@ -213,17 +214,17 @@ else:
   )
   cmdclass = {'build_ext': build_ext}
 
-copy_package_data()
-
-setup(
-    name='sentencepiece',
-    package_dir={'': 'src'},
-    py_modules=[
-        'sentencepiece/__init__',
-        'sentencepiece/_version',
-        'sentencepiece/sentencepiece_model_pb2',
-        'sentencepiece/sentencepiece_pb2',
-    ],
-    ext_modules=[SENTENCEPIECE_EXT],
-    cmdclass=cmdclass,
-)
+if __name__ == '__main__':
+  copy_package_data()
+  setup(
+      name='sentencepiece',
+      package_dir={'': 'src'},
+      py_modules=[
+          'sentencepiece/__init__',
+          'sentencepiece/_version',
+          'sentencepiece/sentencepiece_model_pb2',
+          'sentencepiece/sentencepiece_pb2',
+      ],
+      ext_modules=[SENTENCEPIECE_EXT],
+      cmdclass=cmdclass,
+  )
