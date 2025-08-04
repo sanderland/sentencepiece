@@ -123,7 +123,8 @@ def copy_package_data():
 
   def find_targets(roots):
     for root in roots:
-      if glob.glob(os.path.join(root, '*.bin')):
+      data = glob.glob(os.path.join(root, '*.bin'))
+      if data:
         return data
     return []
 

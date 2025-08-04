@@ -66,7 +66,7 @@ jobs:
         working-directory: ${{github.workspace}}/python
         run: |
           mkdir -p src/sentencepiece/package_data
-          cp -f ../data/*.bin src/sentencepiece/package_data
+          cp ../data/*.bin src/sentencepiece/package_data
           python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS_LINUX: auto aarch64
