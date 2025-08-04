@@ -43,4 +43,4 @@ where = ["src"]
 sentencepiece = ["*.bin"]
 
 [tool.cibuildwheel]
-pre-build = "python -c \"import setup; setup.copy_package_data()\""
+before-build = "python -c \"import setup; setup.copy_package_data()\""
