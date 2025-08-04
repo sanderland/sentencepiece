@@ -18,5 +18,5 @@ else
   SRC_DIR=./sentencepiece
 fi
 
-cmake ${SRC_DIR} -B ${BUILD_DIR} -DSPM_ENABLE_SHARED=OFF -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
+cmake ${SRC_DIR} -B ${BUILD_DIR} -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
 cmake --build ${BUILD_DIR} --config Release --target install --parallel $(nproc)

@@ -24,7 +24,7 @@ To build and install the Python wrapper from source, try the following commands 
 % cd sentencepiece
 % mkdir build
 % cd build
-% cmake .. -DSPM_ENABLE_SHARED=OFF -DCMAKE_INSTALL_PREFIX=./root
+% cmake .. -DSPM_ENABLE_SHARED=OFF -DCMAKE_INSTALL_PREFIX=./root -DSPM_DISABLE_EMBEDDED_DATA=ON
 % make install
 % cd ../python
 % python setup.py bdist_wheel
@@ -44,7 +44,7 @@ git clone https://github.com/google/sentencepiece.git
 cd sentencepiece
 mkdir build
 cd build
-cmake .. -DSPM_ENABLE_SHARED=OFF -DCMAKE_INSTALL_PREFIX=".\root"
+cmake .. -DSPM_ENABLE_SHARED=OFF -DCMAKE_INSTALL_PREFIX=".\root" -DSPM_DISABLE_EMBEDDED_DATA=ON
 cmake --build . --config Release --target install
 cd ../python
 pip install wheel

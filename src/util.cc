@@ -39,6 +39,24 @@ uint32 GetRandomGeneratorSeed() {
   }
 }
 
+namespace {
+std::shared_ptr<const std::string> *GetSharedDataDir() {
+  static auto g_data_dir = std::make_shared<const std::string>(INSTALL_DATADIR);
+  return &g_data_dir;
+}
+}  // namespace
+
+std::string GetDataDir() {
+  auto shared_data_dir = std::atomic_load(GetSharedDataDir());
+  return *shared_data_dir;
+}
+
+void SetDataDir(absl::string_view data_dir) {
+  auto shared_data_dir =
+      std::make_shared<const std::string>(std::string(data_dir));
+  std::atomic_store(GetSharedDataDir(), std::move(shared_data_dir));
+}
+
 namespace logging {
 int GetMinLogLevel() { return g_minloglevel.load(); }
 void SetMinLogLevel(int v) { g_minloglevel.store(v); }

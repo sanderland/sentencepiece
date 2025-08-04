@@ -371,6 +371,7 @@ inline void InitNumThreads(const std::vector<T> &ins, int *num_threads) {
 %ignore sentencepiece::SentencePieceTrainer::PieceProcecssor;
 %ignore sentencepiece::SentencePieceTrainer::SetPretokenizerForTraining;
 %ignore sentencepiece::SentencePieceTrainer::GetPretokenizerForTraining;
+%ignore sentencepiece::SentencePieceTrainer::SetDataDir;
 %ignore sentencepiece::ConvertToUnicodeAlignment;
 
 %ignore sentencepiece::SentencePieceNormalizer::Load;
@@ -1927,6 +1928,7 @@ import re
 import csv
 import sys
 import os
+import importlib.resources
 from io import StringIO
 from io import BytesIO
 
@@ -1982,6 +1984,8 @@ set_random_generator_seed = SetRandomGeneratorSeed
 set_min_log_level = SetMinLogLevel
 
 from ._version import __version__
+
+SetDataDir(os.path.join(str(importlib.resources.files('sentencepiece')), 'package_data'))
 
 class _LogStream(object):
   def __init__(self, ostream=None):

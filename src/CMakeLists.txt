@@ -191,6 +191,10 @@ if (SPM_ENABLE_NFKC_COMPILE)
   list(APPEND SPM_LIBS ICU::i18n ICU::data ICU::uc)
 endif()
 
+if (SPM_DISABLE_EMBEDDED_DATA)
+  add_definitions(-DDISABLE_EMBEDDED_DATA)
+endif()
+
 if (SPM_ENABLE_TCMALLOC)
   if (SPM_TCMALLOC_STATIC)
     find_library(TCMALLOC_LIB NAMES libtcmalloc_minimal.a)

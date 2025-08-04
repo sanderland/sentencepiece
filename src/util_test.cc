@@ -453,4 +453,16 @@ TEST(UtilTest, StrSplitAsCSVTest) {
     EXPECT_EQ("1,2,3,4", v[1]);
   }
 }
+
+TEST(SentencePieceTrainerTest, DataDirTest) {
+  SetDataDir("foo/bar/buzz");
+  EXPECT_EQ(GetDataDir(), "foo/bar/buzz");
+
+  SetDataDir("");
+  EXPECT_EQ(GetDataDir(), "");
+
+  SetDataDir(INSTALL_DATADIR);
+  EXPECT_EQ(GetDataDir(), INSTALL_DATADIR);
+}
+
 }  // namespace sentencepiece

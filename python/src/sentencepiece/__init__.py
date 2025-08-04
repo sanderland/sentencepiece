@@ -1142,11 +1142,15 @@ class SentencePieceNormalizer(object):
 # Register SentencePieceNormalizer in _sentencepiece:
 _sentencepiece.SentencePieceNormalizer_swigregister(SentencePieceNormalizer)
 
+def SetDataDir(data_dir):
+    return _sentencepiece.SetDataDir(data_dir)
+
 
 import re
 import csv
 import sys
 import os
+import importlib.resources
 from io import StringIO
 from io import BytesIO
 
@@ -1202,6 +1206,8 @@ set_random_generator_seed = SetRandomGeneratorSeed
 set_min_log_level = SetMinLogLevel
 
 from ._version import __version__
+
+SetDataDir(os.path.join(str(importlib.resources.files('sentencepiece')), 'package_data'))
 
 class _LogStream(object):
   def __init__(self, ostream=None):

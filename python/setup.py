@@ -15,8 +15,10 @@
 # limitations under the License.!
 
 import codecs
+import glob
 import os
 import platform
+import shutil
 import subprocess
 import sys
 from setuptools import Extension, setup
@@ -108,6 +110,34 @@ class build_ext(_build_ext):
     _build_ext.build_extension(self, ext)
 
 
+def copy_package_data():
+  """Copies shared package data"""
+
+  package_data = os.path.join('src', 'sentencepiece', 'package_data')
+
+  def find_targets(roots):
+    for root in roots:
+      data = glob.glob(os.path.join(root, '*.bin'))
+      if len(data) != 0:
+        return data
+    return []
+
+  data = find_targets([
+      '../build/root/share/sentencepiece',
+      './build/root/share/sentencepiece',
+      '../data',
+  ])
+
+  if len(data) == 0 and is_sentencepiece_installed():
+    data = find_targets(run_pkg_config('datadir'))
+
+  if not os.path.exists(package_data):
+    os.makedirs(package_data)
+
+  for fielname in data:
+    shutil.copy(fielname, package_data)
+
+
 def get_win_arch():
   arch = 'win32'
   if sys.maxsize > 2**32:
@@ -182,6 +212,8 @@ else:
       sources=['src/sentencepiece/sentencepiece_wrap.cxx'],
   )
   cmdclass = {'build_ext': build_ext}
+
+copy_package_data()
 
 setup(
     name='sentencepiece',

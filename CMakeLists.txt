@@ -30,6 +30,7 @@ option(SPM_TCMALLOC_STATIC "Link static library of TCMALLOC." OFF)
 option(SPM_NO_THREADLOCAL "Disable thread_local operator" OFF)
 option(SPM_ENABLE_MSVC_MT_BUILD, "Use /MT flag in MSVC build" OFF)
 option(SPM_CROSS_SYSTEM_PROCESSOR, "Override system processor" "")
+option(SPM_DISABLE_EMBEDDED_DATA, "Disable to embed pre-compiled data." OFF)
 
 set(SPM_PROTOBUF_PROVIDER "internal" CACHE STRING "Provider of protobuf library")
 set_property(CACHE SPM_PROTOBUF_PROVIDER PROPERTY STRINGS "internal" "package")
@@ -136,13 +137,17 @@ endfunction()
 
 join_paths(libdir_for_pc_file "\${exec_prefix}" "${CMAKE_INSTALL_LIBDIR}")
 join_paths(includedir_for_pc_file "\${prefix}" "${CMAKE_INSTALL_INCLUDEDIR}")
+join_paths(datadir_for_pc_file "\${prefix}" "${CMAKE_INSTALL_DATADIR}" "sentencepiece")
+
+join_paths(datadir_for_config_file "${prefix}" "${CMAKE_INSTALL_DATADIR}" "sentencepiece")
+set(INSTALL_DATADIR ${datadir_for_config_file})
 
 configure_file("${PROJECT_SOURCE_DIR}/config.h.in" "config.h")
 configure_file("${PROJECT_SOURCE_DIR}/sentencepiece.pc.in" "sentencepiece.pc" @ONLY)
 
 if (NOT MSVC)
   # suppress warning for C++11 features.
-#  add_definitions("-Wno-deprecated-declarations -Wno-deprecated-enum-enum-conversion")
+  # add_definitions("-Wno-deprecated-declarations -Wno-deprecated-enum-enum-conversion")
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/sentencepiece.pc" DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endif()
 
@@ -150,6 +155,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 
 if (SPM_BUILD_TEST)
   enable_testing()
+endif()
+
+if (SPM_DISABLE_EMBEDDED_DATA)
+ file(GLOB EMBEDDED_DATA_FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/*.bin")
+ install(FILES ${EMBEDDED_DATA_FILES} DESTINATION ${INSTALL_DATADIR})
 endif()
 
 if (SPM_ABSL_PROVIDER STREQUAL "internal")

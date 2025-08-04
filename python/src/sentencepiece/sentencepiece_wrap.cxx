@@ -9933,6 +9933,39 @@ SWIGINTERN PyObject *SentencePieceNormalizer_swiginit(PyObject *SWIGUNUSEDPARM(s
   return SWIG_Python_InitShadowInstance(args);
 }
 
+SWIGINTERN PyObject *_wrap_SetDataDir(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  absl::string_view arg1 ;
+  PyObject *swig_obj[1] ;
+  
+  (void)self;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
+  {
+    const PyInputString ustring(swig_obj[0]);
+    if (!ustring.IsAvalable()) {
+      PyErr_SetString(PyExc_TypeError, "not a string");
+      SWIG_fail;
+    }
+    resultobj = ustring.input_type();
+    arg1 = ustring.str();
+  }
+  {
+    try {
+      sentencepiece::SetDataDir(SWIG_STD_MOVE(arg1));
+      ReleaseResultObject(resultobj);
+    }
+    catch (const sentencepiece::util::Status &status) {
+      SWIG_exception(ToSwigError(status.code()), status.ToString().c_str());
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 static PyMethodDef SwigMethods[] = {
 	 { "new_ImmutableSentencePieceText_ImmutableSentencePiece", _wrap_new_ImmutableSentencePieceText_ImmutableSentencePiece, METH_NOARGS, NULL},
 	 { "delete_ImmutableSentencePieceText_ImmutableSentencePiece", _wrap_delete_ImmutableSentencePieceText_ImmutableSentencePiece, METH_O, NULL},
@@ -10042,6 +10075,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "SentencePieceNormalizer__SetProtoField", _wrap_SentencePieceNormalizer__SetProtoField, METH_VARARGS, NULL},
 	 { "SentencePieceNormalizer_swigregister", SentencePieceNormalizer_swigregister, METH_O, NULL},
 	 { "SentencePieceNormalizer_swiginit", SentencePieceNormalizer_swiginit, METH_VARARGS, NULL},
+	 { "SetDataDir", _wrap_SetDataDir, METH_O, NULL},
 	 { NULL, NULL, 0, NULL }
 };
 

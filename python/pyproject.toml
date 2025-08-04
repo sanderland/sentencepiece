@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Unsupervised text tokenizer and detokenizer."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 urls = { "Homepage" = "https://github.com/google/sentencepiece" }
 classifiers = [
   "Programming Language :: Python :: 3",
@@ -22,12 +22,12 @@ classifiers = [
   "Operating System :: Microsoft :: Windows",
   "Operating System :: POSIX :: Linux",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Text Processing :: Linguistic",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -36,3 +36,8 @@ classifiers = [
 test = ["pytest"]
 testpaths = ["test"]
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sentencepiece = ["*.bin"]

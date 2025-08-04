@@ -3,3 +3,4 @@
 /*.pickle
 /m_*
 /m.*
+/src/sentencepiece/package_data

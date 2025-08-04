@@ -19,6 +19,7 @@
 #include <utility>
 
 #include "filesystem.h"
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_join.h"
 #include "third_party/absl/strings/str_replace.h"
 #include "third_party/absl/strings/str_split.h"
@@ -35,10 +36,13 @@
 
 #include <set>
 
-#include "normalization_rule.h"
 #include "normalizer.h"
 #include "third_party/darts_clone/darts.h"
 #include "util.h"
+
+#ifndef DISABLE_EMBEDDED_DATA
+#include "normalization_rule.h"
+#endif
 
 namespace sentencepiece {
 namespace normalizer {
@@ -148,6 +152,14 @@ Builder::Chars Normalize(const Builder::CharsMap &chars_map,
 
   return normalized;
 }
+
+bool IsValidNormalizerData(absl::string_view blob_data) {
+  NormalizerSpec spec;
+  spec.set_precompiled_charsmap(blob_data.data(), blob_data.size());
+  const Normalizer normalizer(spec);
+  return normalizer.status().ok();
+}
+
 }  // namespace
 
 // static
@@ -211,6 +223,7 @@ util::Status Builder::CompileCharsMap(const CharsMap &chars_map,
   absl::string_view trie_blob(static_cast<const char *>(trie.array()),
                               trie.size() * trie.unit_size());
   *output = Normalizer::EncodePrecompiledCharsMap(trie_blob, normalized);
+  CHECK_OR_RETURN(IsValidNormalizerData(*output));
 
   LOG(INFO) << "Generated normalizer blob. size=" << output->size();
 
@@ -281,15 +294,32 @@ util::Status Builder::GetPrecompiledCharsMap(absl::string_view name,
   }
 
   std::string result;
+
+#ifndef DISABLE_EMBEDDED_DATA
   for (size_t i = 0; i < kNormalizationRules_size; ++i) {
     const auto *blob = &kNormalizationRules_blob[i];
     if (blob->name == name) {
       output->assign(blob->data, blob->size);
+      CHECK_OR_RETURN(IsValidNormalizerData(*output));
       return util::OkStatus();
     }
   }
+#else   // DISABLE_EMBEDDED_DATA
+  {
+    const std::string filename =
+        absl::StrCat(util::JoinPath(GetDataDir(), name), ".bin");
+    auto input = filesystem::NewReadableFile(filename, true /* is binary */);
+    if (input->status().ok()) {
+      input->ReadAll(output);
+      CHECK_OR_RETURN(IsValidNormalizerData(*output));
+      return util::OkStatus();
+    }
+  }
+#endif  // DISABLE_EMBEDDED_DATA
+
   return util::StatusBuilder(util::StatusCode::kNotFound, GTL_LOC)
-         << "No precompiled charsmap is found: " << name;
+         << "No precompiled charsmap is found: " << name << " in "
+         << GetDataDir();
 }
 
 #ifdef ENABLE_NFKC_COMPILE

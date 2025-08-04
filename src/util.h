@@ -47,6 +47,12 @@ std::ostream &operator<<(std::ostream &out, const std::vector<T> &v) {
 
 uint32 GetRandomGeneratorSeed();
 
+// Sets data dir containing the global resources, e.g., pre-compiled
+// normalization data.
+void SetDataDir(absl::string_view data_dir);
+
+std::string GetDataDir();
+
 // String utilities
 namespace string_util {
 
