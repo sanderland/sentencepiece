@@ -115,10 +115,15 @@ def copy_package_data():
 
   package_data = os.path.join('src', 'sentencepiece', 'package_data')
 
+  if not os.path.exists(package_data):
+    os.makedirs(package_data)
+
+  if glob.glob(os.path.join(package_data, '*.bin')):
+    return
+
   def find_targets(roots):
     for root in roots:
-      data = glob.glob(os.path.join(root, '*.bin'))
-      if len(data) != 0:
+      if glob.glob(os.path.join(root, '*.bin')):
         return data
     return []
 
@@ -128,11 +133,8 @@ def copy_package_data():
       '../data',
   ])
 
-  if len(data) == 0 and is_sentencepiece_installed():
+  if not data and is_sentencepiece_installed():
     data = find_targets(run_pkg_config('datadir'))
-
-  if not os.path.exists(package_data):
-    os.makedirs(package_data)
 
   for filename in data:
     print('copying {} -> {}'.format(filename, package_data))

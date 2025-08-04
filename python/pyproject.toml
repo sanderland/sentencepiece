@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "sentencepiece"
 version = "0.2.1"
 authors = [
-  { name="Taku Kudo", email="taku@gogle.com" },
+  { name="Taku Kudo", email="taku@google.com" },
 ]
 description = "Unsupervised text tokenizer and detokenizer."
 readme = "README.md"

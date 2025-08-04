@@ -8,7 +8,4 @@ do
   cp -f -R "../${i}" sentencepiece
 done
 
-mkdir -p sentencepiece/data
-cp -f ../data/*.bin sentencepiece/data
-
 python3 setup.py sdist

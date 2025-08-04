@@ -64,7 +64,10 @@ jobs:
 
       - name: Build wheels
         working-directory: ${{github.workspace}}/python
-        run: python -m cibuildwheel --output-dir wheelhouse
+        run: |
+          mkdir -p src/sentencepiece/package_data
+          cp -f ../data/*.bin src/sentencepiece/package_data
+          python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
