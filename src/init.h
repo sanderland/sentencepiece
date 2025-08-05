@@ -26,7 +26,7 @@
 #include "third_party/protobuf-lite/google/protobuf/message_lite.h"
 #endif
 
-ABSL_DECLARE_FLAG(int32, minloglevel);
+ABSL_DECLARE_FLAG(int32_t, minloglevel);
 
 namespace sentencepiece {
 inline void ParseCommandLineFlags(const char *usage, int *argc, char ***argv,

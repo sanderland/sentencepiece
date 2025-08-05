@@ -33,12 +33,12 @@ TEST(UtilTest, LexicalCastTest) {
   EXPECT_FALSE(b);
   EXPECT_FALSE(string_util::lexical_cast<bool>("UNK", &b));
 
-  int32 n = 0;
-  EXPECT_TRUE(string_util::lexical_cast<int32>("123", &n));
+  int32_t n = 0;
+  EXPECT_TRUE(string_util::lexical_cast<int32_t>("123", &n));
   EXPECT_EQ(123, n);
-  EXPECT_TRUE(string_util::lexical_cast<int32>("-123", &n));
+  EXPECT_TRUE(string_util::lexical_cast<int32_t>("-123", &n));
   EXPECT_EQ(-123, n);
-  EXPECT_FALSE(string_util::lexical_cast<int32>("UNK", &n));
+  EXPECT_FALSE(string_util::lexical_cast<int32_t>("UNK", &n));
 
   double d = 0.0;
   EXPECT_TRUE(string_util::lexical_cast<double>("123.4", &d));
@@ -83,31 +83,31 @@ TEST(UtilTest, EncodePODTet) {
   }
 
   {
-    int32 v = 0;
-    tmp = string_util::EncodePOD<int32>(10);
-    EXPECT_TRUE(string_util::DecodePOD<int32>(tmp, &v));
+    int32_t v = 0;
+    tmp = string_util::EncodePOD<int32_t>(10);
+    EXPECT_TRUE(string_util::DecodePOD<int32_t>(tmp, &v));
     EXPECT_EQ(10, v);
   }
 
   {
-    int16 v = 0;
-    tmp = string_util::EncodePOD<int16>(10);
-    EXPECT_TRUE(string_util::DecodePOD<int16>(tmp, &v));
+    int16_t v = 0;
+    tmp = string_util::EncodePOD<int16_t>(10);
+    EXPECT_TRUE(string_util::DecodePOD<int16_t>(tmp, &v));
     EXPECT_EQ(10, v);
   }
 
   {
-    int64 v = 0;
-    tmp = string_util::EncodePOD<int64>(10);
-    EXPECT_TRUE(string_util::DecodePOD<int64>(tmp, &v));
+    int64_t v = 0;
+    tmp = string_util::EncodePOD<int64_t>(10);
+    EXPECT_TRUE(string_util::DecodePOD<int64_t>(tmp, &v));
     EXPECT_EQ(10, v);
   }
 
   // Invalid data
   {
-    int32 v = 0;
-    tmp = string_util::EncodePOD<int64>(10);
-    EXPECT_FALSE(string_util::DecodePOD<int32>(tmp, &v));
+    int32_t v = 0;
+    tmp = string_util::EncodePOD<int64_t>(10);
+    EXPECT_FALSE(string_util::DecodePOD<int32_t>(tmp, &v));
   }
 }
 

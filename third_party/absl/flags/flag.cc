@@ -170,13 +170,13 @@ void Flag<bool>::set_value_as_str(const std::string &value_as_str) {
 }
 
 template class Flag<std::string>;
-template class Flag<int32>;
-template class Flag<uint32>;
+template class Flag<int32_t>;
+template class Flag<uint32_t>;
 template class Flag<double>;
 template class Flag<float>;
 template class Flag<bool>;
-template class Flag<int64>;
-template class Flag<uint64>;
+template class Flag<int64_t>;
+template class Flag<uint64_t>;
 
 std::vector<char *> ParseCommandLine(int argc, char *argv[]) {
   if (argc == 0) return {};

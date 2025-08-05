@@ -351,7 +351,7 @@ util::Status SentencePieceProcessor::LoadVocabulary(absl::string_view filename,
     const std::vector<std::string> v = absl::StrSplit(line, '\t');
     CHECK_GE_OR_RETURN(v.size(), 1);
     CHECK_OR_RETURN(!v[0].empty());
-    int32 freq = 1;
+    int32_t freq = 1;
     if (v.size() >= 2) {
       CHECK_OR_RETURN(absl::SimpleAtoi(v[1], &freq))
           << "Could not parse the frequency";

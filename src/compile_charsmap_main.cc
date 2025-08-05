@@ -127,7 +127,7 @@ struct BinaryBlob {
   os << kHeader;
 
   os << "#if defined(_WIN32) && !defined(__CYGWIN__)\n";
-  os << "constexpr unsigned long long int kNormalizationRules_blob_uint64[] = "
+  os << "constexpr unsigned long long int kNormalizationRules_blob_uint64_t[] = "
         "{\n";
   std::vector<size_t> offset;
   os << ToHexUInt64Array(data, &offset);
@@ -136,7 +136,7 @@ struct BinaryBlob {
   os << "const BinaryBlob kNormalizationRules_blob[] = {\n";
   for (size_t i = 0; i < data.size(); ++i) {
     os << "{ \"" << data[i].first << "\", " << data[i].second.size() << ", ";
-    os << "reinterpret_cast<const char *>(kNormalizationRules_blob_uint64 + "
+    os << "reinterpret_cast<const char *>(kNormalizationRules_blob_uint64_t + "
        << offset[i] << ") },\n";
   }
   os << "};\n";

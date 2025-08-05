@@ -46,7 +46,7 @@ struct TrainerResult {
 
 TrainerResult RunTrainer(const std::vector<std::string>& input, int size,
                          const bool use_dp = false, const float dp_noise = 0.0,
-                         const uint32 dp_clip = 0) {
+                         const uint32_t dp_clip = 0) {
   const std::string input_file =
       util::JoinPath(::testing::TempDir(), "input");
   const std::string model_prefix =

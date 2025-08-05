@@ -37,9 +37,9 @@ ABSL_FLAG(std::string, input, "", "input filename");
 ABSL_FLAG(std::string, output, "", "output filename");
 ABSL_FLAG(std::string, extra_options, "",
           "':' separated encoder extra options, e.g., \"reverse:bos:eos\"");
-ABSL_FLAG(int32, nbest_size, 10, "NBest size");
+ABSL_FLAG(int32_t, nbest_size, 10, "NBest size");
 ABSL_FLAG(double, alpha, 0.5, "Smoothing parameter for sampling mode.");
-ABSL_FLAG(uint32, random_seed, std::numeric_limits<uint32>::max(),
+ABSL_FLAG(uint32_t, random_seed, std::numeric_limits<uint32_t>::max(),
           "Seed value for random generator.");
 
 // Piece restriction with vocabulary file.
@@ -47,7 +47,7 @@ ABSL_FLAG(uint32, random_seed, std::numeric_limits<uint32>::max(),
 ABSL_FLAG(std::string, vocabulary, "",
           "Restrict the vocabulary. The encoder only emits the "
           "tokens in \"vocabulary\" file");
-ABSL_FLAG(int32, vocabulary_threshold, 0,
+ABSL_FLAG(int32_t, vocabulary_threshold, 0,
           "Words with frequency < threshold will be treated as OOV");
 ABSL_FLAG(bool, generate_vocabulary, false,
           "Generates vocabulary file instead of segmentation");
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
     rest_args.push_back(absl::GetFlag(FLAGS_input));
   }
 
-  if (absl::GetFlag(FLAGS_random_seed) != std::numeric_limits<uint32>::max()) {
+  if (absl::GetFlag(FLAGS_random_seed) != std::numeric_limits<uint32_t>::max()) {
     sentencepiece::SetRandomGeneratorSeed(absl::GetFlag(FLAGS_random_seed));
   }
 
