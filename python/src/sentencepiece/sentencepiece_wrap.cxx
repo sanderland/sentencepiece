@@ -10614,6 +10614,11 @@ SWIG_init(void) {
   
   SWIG_InstallConstants(d,swig_const_table);
   
+  
+#ifdef Py_GIL_DISABLED
+  PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
+#endif
+  
 #if PY_VERSION_HEX >= 0x03000000
   return m;
 #else

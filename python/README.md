@@ -209,3 +209,12 @@ with urllib.request.urlopen(
 sp = spm.SentencePieceProcessor(model_proto=model.getvalue())
 print(sp.encode('this is test'))
 ```
+
+### Free Threading support
+Experimental support for no-GIL/Free-Threading has been introduced since v0.2.1. For more details, please refer to [this page](https://py-free-threading.github.io.).
+This operates similarly to how [NumPy](https://numpy.org/devdocs/reference/thread_safety.html#free-threaded-python) handles it.
+
+The C++ library's const and static methods, e.g., encode(), decode() and train(), are designed to work in a non-GIL environment.
+However, non-const methods, e.g., load(), may have potential data race issues, so please ensure you implement appropriate locks beforehand.
+
+While this limitation might be removed in the future, please note that it's not a simple fix, as it would require additional shared locks in C++.

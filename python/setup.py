@@ -21,6 +21,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import sysconfig
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext as _build_ext
 
@@ -58,6 +59,10 @@ def is_sentencepiece_installed():
     return True
   except subprocess.CalledProcessError:
     return False
+
+
+def is_gil_disabled():
+  return sysconfig.get_config_var('Py_GIL_DISABLED')
 
 
 def get_cflags_and_libs(root):
@@ -103,6 +108,8 @@ class build_ext(_build_ext):
         libs.append('-Wl,-strip-all')
     if sys.platform == 'linux':
       libs.append('-Wl,-Bsymbolic')
+    if is_gil_disabled():
+      cflags.append('-DPy_GIL_DISABLED')
     print('## cflags={}'.format(' '.join(cflags)))
     print('## libs={}'.format(' '.join(libs)))
     ext.extra_compile_args = cflags
@@ -198,10 +205,16 @@ if os.name == 'nt':
         '8',
     ])
     cflags = ['/std:c++17', '/I.\\build\\root\\include']
+
     libs = [
         '.\\build\\root\\lib\\sentencepiece.lib',
         '.\\build\\root\\lib\\sentencepiece_train.lib',
     ]
+
+  # on Windows, GIL flag is not set automatically.
+  # https://docs.python.org/3/howto/free-threading-python.html
+  if is_gil_disabled():
+    cflags.append('/DPy_GIL_DISABLED')
 
   SENTENCEPIECE_EXT = Extension(
       'sentencepiece._sentencepiece',
