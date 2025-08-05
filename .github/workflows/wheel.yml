@@ -75,6 +75,7 @@ jobs:
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
           CIBW_ARCHS_WINDOWS: auto ARM64
           CIBW_SKIP: "*-musllinux_*"
+          CIBW_ENVIRONMENT: "CMAKE_BUILD_PARALLEL_LEVEL=8"
           CIBW_BUILD_VERBOSITY: 1
           CIBW_ENABLE: cpython-freethreading
 
