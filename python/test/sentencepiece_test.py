@@ -15,14 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.!
 
-import sys
-
 from collections import defaultdict
 import io
 import os
 import pickle
-import unittest
+import sys
 import threading
+import unittest
 import sentencepiece as spm
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -31,8 +30,6 @@ print(HERE)
 print('VERSION={}'.format(spm.__version__))
 
 data_dir = HERE
-if sys.platform == 'win32':
-  data_dir = os.path.join('..', 'data')
 
 
 class TestSentencepieceProcessor(unittest.TestCase):
@@ -42,9 +39,7 @@ class TestSentencepieceProcessor(unittest.TestCase):
     self.sp_ = spm.SentencePieceProcessor()
     self.jasp_ = spm.SentencePieceProcessor()
     self.assertTrue(self.sp_.Load(os.path.join(HERE, 'test_model.model')))
-    self.assertTrue(
-        self.jasp_.Load(os.path.join(HERE, 'test_ja_model.model'))
-    )
+    self.assertTrue(self.jasp_.Load(os.path.join(HERE, 'test_ja_model.model')))
     with open(os.path.join(HERE, 'test_model.model'), 'rb') as f:
       self.assertTrue(self.sp_.LoadFromSerializedProto(f.read()))
     with open(os.path.join(HERE, 'test_ja_model.model'), 'rb') as f:
