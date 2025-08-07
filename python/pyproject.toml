@@ -42,3 +42,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 sentencepiece = ["*.bin"]
+
+[tool.cibuildwheel]
+test-requires = ["pytest"]
+test-command = "pytest -v {project}/tests"
