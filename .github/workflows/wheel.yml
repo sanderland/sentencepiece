@@ -85,7 +85,7 @@ jobs:
           files: python/dist/*.tar.gz
 
       - name: Build wheel from sdist
-        run: python -m pip wheel python/dist/*.tar.gz --verbose
+        run: python -m pip wheel "${{ steps.sdist.outputs.paths }}" --verbose
 
       - name: Copy sdist
         working-directory: python
@@ -94,8 +94,8 @@ jobs:
           mkdir -p wheelhouse
           cp -f dist/*.tar.gz wheelhouse/
 
-      - name: Validate sdist archive
-        run: twine check --strict python/wheelhouse/*.whl
+      - name: Validate artifact
+        run: twine check --strict python/wheelhouse/*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
