@@ -43,29 +43,29 @@ jobs:
       - name: Build for Windows
         if: runner.os == 'Windows'
         run: |
-          cmake -A Win32 -B ${{github.workspace}}/build_win32 -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/build/root_win32
-          cmake --build ${{github.workspace}}/build_win32 --config Release --target install --parallel 8
-          cmake -A x64   -B ${{github.workspace}}/build_amd64 -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/build/root_amd64
-          cmake --build ${{github.workspace}}/build_amd64 --config Release --target install --parallel 8
-          cmake -A arm64 -B ${{github.workspace}}/build_arm64 -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/build/root_arm64
-          cmake --build ${{github.workspace}}/build_arm64 --config Release --target install --parallel 8
+          cmake -A Win32 -B build_win32 -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=build/root_win32
+          cmake --build build_win32 --config Release --target install --parallel 8
+          cmake -A x64   -B build_amd64 -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=build/root_amd64
+          cmake --build build_amd64 --config Release --target install --parallel 8
+          cmake -A arm64 -B build_arm64 -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=build/root_arm64
+          cmake --build build_arm64 --config Release --target install --parallel 8
 
       - name: Build for Mac
         if: runner.os == 'macOS'
         run: |
-          cmake -B ${{github.workspace}}/build -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/build/root
-          cmake --build ${{github.workspace}}/build --config Release --target install --parallel 8
+          cmake -B build -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=build/root
+          cmake --build build --config Release --target install --parallel 8
         env:
           CMAKE_OSX_ARCHITECTURES: arm64;x86_64
 
       - name: Install cibuildwheel
-        working-directory: ${{github.workspace}}/python
+        working-directory: python
         run: |
           python -m pip install --require-hashes --no-dependencies -r ../.github/workflows/requirements/base.txt
           python -m pip install --require-hashes --no-dependencies -r ../.github/workflows/requirements/cibuildwheel.txt
 
       - name: Build wheels
-        working-directory: ${{github.workspace}}/python
+        working-directory: python
         run: |
           mkdir -p src/sentencepiece/package_data
           cp ../data/*.bin src/sentencepiece/package_data
@@ -80,7 +80,7 @@ jobs:
           CIBW_ENABLE: cpython-freethreading
 
       - name: Build sdist archive
-        working-directory: ${{github.workspace}}/python
+        working-directory: python
         run: sh build_sdist.sh
 
       - name: Fetch sdist archive
@@ -93,7 +93,7 @@ jobs:
         run: python -m pip wheel "${{ steps.sdist.outputs.paths }}" --verbose
 
       - name: Copy sdist
-        working-directory: ${{github.workspace}}/python
+        working-directory: python
         if: runner.os == 'macOS'
         run: cp -f dist/*.tar.gz wheelhouse/
 
