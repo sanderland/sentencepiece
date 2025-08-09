@@ -100,7 +100,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifacts-${{ matrix.os }}-${{ matrix.arch }}
+          name: artifacts-${{ matrix.os }}
           path: python/wheelhouse/*
           overwrite: true
 
