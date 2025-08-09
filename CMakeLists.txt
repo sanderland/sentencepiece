@@ -37,6 +37,10 @@ set_property(CACHE SPM_PROTOBUF_PROVIDER PROPERTY STRINGS "internal" "package")
 set(SPM_ABSL_PROVIDER "internal" CACHE STRING "Provider of absl library")
 set_property(CACHE SPM_ABSL_PROVIDER PROPERTY STRINGS "internal" "module" "package")
 
+# Includes processor name to avoid conflicts.
+set(CPACK_PACKAGE_FILE_NAME
+    "sentencepiece-${SPM_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+
 if (SPM_CROSS_SYSTEM_PROCESSOR)
  set(CMAKE_SYSTEM_PROCESSOR ${SPM_CROSS_SYSTEM_PROCESSOR})
 endif()
