@@ -35,12 +35,6 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Set up QEMU
-        if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
-        with:
-          platforms: arm64
-
       - name: Build for Windows
         if: runner.os == 'Windows'
         run: |
@@ -88,23 +82,26 @@ jobs:
         uses: tj-actions/glob@2deae40528141fc53131606d56b4e4ce2a486b29 # v22.0.2
         id: sdist
         with:
-          files: ./python/dist/*.tar.gz
+          files: python/dist/*.tar.gz
 
       - name: Build wheel from sdist
-        run: python -m pip wheel "${{ steps.sdist.outputs.paths }}" --verbose
+        run: python -m pip wheel python/dist/*.tar.gz --verbose
 
       - name: Copy sdist
         working-directory: python
         if: runner.os == 'macOS'
-        run: cp -f dist/*.tar.gz wheelhouse/
+        run: |
+          mkdir -p wheelhouse
+          cp -f dist/*.tar.gz wheelhouse/
+
+      - name: Validate sdist archive
+        run: twine check --strict python/wheelhouse/*.whl
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-${{ matrix.os }}-${{ matrix.arch }}
-          path: |
-            ./python/wheelhouse/*.whl
-            ./python/wheelhouse/*.tar.gz
+          path: python/wheelhouse/*
           overwrite: true
 
       - name: Upload wheel release
@@ -112,7 +109,7 @@ jobs:
         uses: svenstaro/upload-release-action@81c65b7cd4de9b2570615ce3aad67a41de5b1a13 # v2.11.2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./python/wheelhouse/*
+          file: python/wheelhouse/*
           tag: ${{ github.ref }}
           overwrite: true
           prerelease: true
@@ -121,17 +118,17 @@ jobs:
       - name: Generate SLSA subjects - Macos
         id: hash-macos
         if: runner.os == 'macOS'
-        run: echo "digests=$(shasum -a 256 ./python/wheelhouse/* | base64)" >> $GITHUB_OUTPUT
+        run: echo "digests=$(shasum -a 256 python/wheelhouse/* | base64)" >> $GITHUB_OUTPUT
 
       - name: Generate SLSA subjects - Linux
         id: hash-linux
         if: runner.os == 'Linux'
-        run: echo "digests=$(sha256sum ./python/wheelhouse/* | base64 -w0)" >> $GITHUB_OUTPUT
+        run: echo "digests=$(sha256sum python/wheelhouse/* | base64 -w0)" >> $GITHUB_OUTPUT
 
       - name: Generate SLSA subjects - Windows
         id: hash-windows
         if: runner.os == 'Windows'
-        run: echo "digests=$(sha256sum ./python/wheelhouse/* | base64 -w0)" >> $GITHUB_OUTPUT
+        run: echo "digests=$(sha256sum python/wheelhouse/* | base64 -w0)" >> $GITHUB_OUTPUT
 
   gather-digests:
     needs: [build_wheels]
