@@ -17,11 +17,16 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
-        arch: [ x64 ]
+        os: [ ubuntu-latest, macos-latest ]
+        arch: [ '' ]
         include:
           - os: windows-latest
-            arch: x86
+            arch: Win32
+          - os: windows-latest
+            arch: x64
+          - os: windows-11-arm
+            arch: ARM64
+
     runs-on: ${{ matrix.os }}
 
     permissions:
@@ -36,13 +41,7 @@ jobs:
 
     - name: Config for Windows
       if: runner.os == 'Windows'
-      run: |
-        if ("${{matrix.arch}}" -eq "x64") {
-          $msbuildPlatform = "x64"
-        } else {
-          $msbuildPlatform = "Win32"
-        }
-        cmake -A $msbuildPlatform -B build -DSPM_BUILD_TEST=ON -DSPM_ENABLE_SHARED=OFF -DCMAKE_INSTALL_PREFIX=build/root
+      run: cmake -A ${{ matrix.arch }} -B build -DSPM_BUILD_TEST=ON -DSPM_ENABLE_SHARED=OFF -DCMAKE_INSTALL_PREFIX=build/root
 
     - name: Config for Linux/MacOSX
       if: runner.os != 'Windows'
