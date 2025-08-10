@@ -101,7 +101,9 @@ jobs:
           cp -f dist/*.tar.gz wheelhouse/
 
       - name: Validate artifact
-        run: twine check --strict python/wheelhouse/*
+        run: |
+          python -m pip install twine
+          twine check --strict python/wheelhouse/*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
