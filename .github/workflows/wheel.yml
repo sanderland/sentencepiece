@@ -81,7 +81,7 @@ jobs:
       - name: Build sdist archive
         working-directory: python
         run: |
-          python -m pip setuptools
+          python -m pip install setuptools
           sh build_sdist.sh
 
       - name: Fetch sdist archive
