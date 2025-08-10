@@ -7,7 +7,7 @@ on:
       - 'v*'
   pull_request:
     branches: [ master ]
-  workflow_dispatch:    
+  workflow_dispatch:
   release:
     types: [ created ]
 
@@ -22,7 +22,7 @@ jobs:
       digests-windows: ${{ steps.hash-windows.outputs.digests }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm, macos-latest]
     runs-on: ${{ matrix.os }}
     name: Build wheels on ${{ matrix.os }}
 
@@ -35,13 +35,17 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Build for Windows
-        if: runner.os == 'Windows'
+      - name: Build for Windows (Win32/x64)
+        if: runner.os == 'Windows' && runner.arch == 'ARM64'
         run: |
           cmake -A Win32 -B build_win32 -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=build/root_win32
           cmake --build build_win32 --config Release --target install --parallel 8
           cmake -A x64   -B build_amd64 -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=build/root_amd64
           cmake --build build_amd64 --config Release --target install --parallel 8
+
+      - name: Build for Windows (ARM64)
+        if: runner.os == 'Windows' && runner.arch != 'ARM64'
+        run: |
           cmake -A arm64 -B build_arm64 -DSPM_ENABLE_SHARED=OFF -DSPM_DISABLE_EMBEDDED_DATA=ON -DCMAKE_INSTALL_PREFIX=build/root_arm64
           cmake --build build_arm64 --config Release --target install --parallel 8
 
@@ -68,7 +72,7 @@ jobs:
         env:
           CIBW_ARCHS_LINUX: auto
           CIBW_ARCHS_MACOS: x86_64 universal2 arm64
-          CIBW_ARCHS_WINDOWS: auto ARM64
+          CIBW_ARCHS_WINDOWS: auto
           CIBW_SKIP: "*-musllinux_*"
           CIBW_ENVIRONMENT: "CMAKE_BUILD_PARALLEL_LEVEL=8"
           CIBW_BUILD_VERBOSITY: 1
