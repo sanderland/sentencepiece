@@ -779,12 +779,13 @@ class TestSentencepieceProcessor(unittest.TestCase):
     self.assertEqual(e1, e3)
 
   def test_pickle(self):
-    with open('sp.pickle', 'wb') as f:
+    tid = threading.get_native_id()
+    with open(f'sp_{tid}.pickle', 'wb') as f:
       pickle.dump(self.sp_, f)
 
     id1 = self.sp_.encode('hello world.', out_type=int)
 
-    with open('sp.pickle', 'rb') as f:
+    with open(f'sp_{tid}.pickle', 'rb') as f:
       sp = pickle.load(f)
 
     id2 = sp.encode('hello world.', out_type=int)
