@@ -23,6 +23,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <iomanip>
+#include <sstream>
 
 #include "filesystem.h"
 #include "normalizer.h"
@@ -42,6 +44,80 @@ namespace unigram {
 namespace {
 
 constexpr char32 kSentenceBoundary = 0x0000;
+
+// Format integer with commas, e.g., 1234567 -> "1,234,567"
+static std::string FormatWithCommas(int64_t value) {
+  std::string s = std::to_string(value);
+  std::string out;
+  int n = s.size();
+  for (int i = 0; i < n; ++i) {
+    out.push_back(s[i]);
+    int rem = n - i - 1;
+    if (rem > 0 && rem % 3 == 0) out.push_back(',');
+  }
+return out;
+}
+
+// Escape text for log display similar to Python repr, then enforce a fixed field width.
+static std::string EscapeForDisplay(const std::string &in) {
+  std::ostringstream oss;
+  oss << '"';
+  for (unsigned char ch : in) {
+    switch (ch) {
+      case '\\': oss << "\\\\"; break;
+      case '"':  oss << "\\\""; break;
+      case '\n': oss << "\\n"; break;
+      case '\r': oss << "\\r"; break;
+      case '\t': oss << "\\t"; break;
+      default:
+        if (ch < 0x20) {
+          // Control char -> hex escape
+          oss << "\\x" << std::hex << std::setw(2) << std::setfill('0')
+              << static_cast<int>(ch) << std::dec << std::setfill(' ');
+        } else {
+          oss << static_cast<char>(ch);
+        }
+    }
+  }
+  oss << '"';
+  return oss.str();
+}
+
+static std::string PadOrTruncate(const std::string &s, size_t width) {
+  if (s.size() == width) return s;
+  if (s.size() < width) return s + std::string(width - s.size(), ' ');
+  if (width <= 3) return s.substr(0, width);
+  return s.substr(0, width - 3) + "...";
+}
+
+// Log example items with a tree-like prefix, showing top and bottom n entries.
+static void LogExamples(const std::vector<std::pair<std::string, float>> &items,
+                        const std::string &score_label,
+                        int n = 5) {
+  if (items.empty()) return;
+  // Copy and sort ascending by score to mimic Python
+  std::vector<std::pair<std::string, float>> sorted = items;
+  std::sort(sorted.begin(), sorted.end(), [](const auto &a, const auto &b){
+    if (a.second == b.second) return a.first < b.first;
+    return a.second < b.second;
+  });
+  const size_t total = sorted.size();
+  for (size_t i = 0; i < total; ++i) {
+    if (total > static_cast<size_t>(2 * n)) {
+      if (i == static_cast<size_t>(n)) {
+        LOG(INFO) << "    │ ├─ ...";
+      }
+      if (i > static_cast<size_t>(n) && i < total - static_cast<size_t>(n)) continue;
+    }
+    const bool last = (i + 1 == total) || (total > static_cast<size_t>(2 * n) && i + 1 == total - static_cast<size_t>(n));
+    const char *list_item = last ? " └─" : " ├─";
+    const std::string repr = PadOrTruncate(EscapeForDisplay(sorted[i].first), 25);
+    std::ostringstream line;
+    line << "    │" << list_item << " " << repr
+         << "  " << score_label << " = " << std::setw(10) << std::setprecision(3) << std::scientific << sorted[i].second;
+    LOG(INFO) << line.str();
+  }
+}
 
 double Digamma(double x) {
   double result = 0.0;
@@ -184,6 +260,7 @@ TrainerModel::SentencePieces Trainer::MakeSeedSentencePiecesInternal() {
   // Merges all sentences into one array with 0x0000 delimiter.
   std::vector<char32> array;
   absl::flat_hash_map<std::string, int64_t> all_chars;
+  int64_t candidate_count = 0;  // [C++] track number of candidate substrings considered
 
   const bool is_tsv = trainer_spec_.input_format() == "tsv";
 
@@ -209,6 +286,7 @@ TrainerModel::SentencePieces Trainer::MakeSeedSentencePiecesInternal() {
 
   // all_chars must be included in the seed sentencepieces.
   TrainerModel::SentencePieces seed_sentencepieces;
+  node_int_type max_len = 0;
   for (const auto &it : Sorted(all_chars)) {
     seed_sentencepieces.emplace_back(it);
   }
@@ -231,22 +309,22 @@ TrainerModel::SentencePieces Trainer::MakeSeedSentencePiecesInternal() {
         continue;
       }
       // Initialise score of a piece by character coverage.
+      max_len = std::max<node_int_type>(max_len, uw.size());
       seed_sentencepieces.emplace_back(seed_sentencepiece, freq * uw.size());
+      ++candidate_count;
       if (seed_sentencepieces.size() % 1000000 == 0) {
-        LOG(INFO) << "loaded " << seed_sentencepieces.size()
-                  << " seed sentencepieces";
+        LOG(INFO) << "Loading seed pieces from file... loaded "
+                  << seed_sentencepieces.size() << " entries so far";
       }
     }
 
-    LOG(INFO) << "skipped " << skipped_sentencepieces << " seed sentencepieces";
+    LOG(INFO) << "Skipped " << skipped_sentencepieces << " invalid seed sentencepieces from file";
 
     // Take highest scoring pieces as initial vocab.
     seed_sentencepieces = Sorted(seed_sentencepieces);
     seed_sentencepieces.resize(std::min<size_t>(
         trainer_spec_.seed_sentencepiece_size(), seed_sentencepieces.size()));
 
-    LOG(INFO) << "Initialized " << seed_sentencepieces.size()
-              << " seed sentencepieces from file.";
   } else {
     CHECK_LE(array.size(),
              static_cast<size_t>(std::numeric_limits<node_int_type>::max()))
@@ -262,40 +340,67 @@ TrainerModel::SentencePieces Trainer::MakeSeedSentencePiecesInternal() {
     // more than 2 times in the sentence.
     constexpr node_int_type kAlphabetSize = 0x110000;  // All UCS4 range.
     node_int_type node_num = 0;
-    LOG(INFO) << "Making suffix array...";
+    LOG(INFO) << "Making suffix array for initial vocabulary extraction with size " << n << " and alphabet size " << kAlphabetSize;
     CHECK_EQ(0, esaxx(array.begin(), SA.begin(), L.begin(), R.begin(),
                       D.begin(), n, kAlphabetSize, node_num));
 
-    LOG(INFO) << "Extracting frequent sub strings... node_num=" << node_num;
-    BoundedPriorityQueue<node_int_type> queue(
+    LOG(INFO) << "Extracting frequent substrings... nodes=" << node_num;
+    BoundedPriorityQueue<std::pair<node_int_type, node_int_type>> queue(
         static_cast<size_t>(trainer_spec_.seed_sentencepiece_size()));
 
-    for (node_int_type i = 0; i < node_num; ++i) {
+    char* target = "Gra";
+    // set of done strings
+    std::set<std::string> done_pieces;
+    for (node_int_type i = node_num - 1; i >= 0; --i) {
       const node_int_type offset = SA[L[i]];
       const node_int_type len = D[i];
+      const char32 *begin = &array[offset];
+      const char32 *end = &array[offset + len];
+      const UnicodeText uw(begin, end);
+      const std::string uw_utf8 = string_util::UnicodeTextToUTF8(uw);
+      if (uw_utf8 == target || uw_utf8.find(target) == 0) {
+        LOG(INFO) << "!!! Found '" << target << "' in '" << uw_utf8 << "' !!!";
+      }
+
       if (len <= 1 || offset >= array.size() || offset + len >= array.size()) {
         continue;
       }
-      const char32 *begin = &array[offset];
-      const char32 *end = &array[offset + len];
       // Skips if a substring contains a sentence boundary.
       if (std::find(begin, end, kSentenceBoundary) != end) {
         continue;
       }
-      const UnicodeText uw(begin, end);
+      const node_int_type freq = R[i] - L[i];
+
       if (!IsValidSentencePiece(uw)) {
+        while (end - begin > 1) {
+          auto uwprefix = UnicodeText(begin, end);
+          auto uwprefix_utf8 = string_util::UnicodeTextToUTF8(uwprefix);
+          if (IsValidSentencePiece(uwprefix)) {
+            bool is_done = done_pieces.find(uwprefix_utf8) != done_pieces.end();
+            if (!is_done && false) {
+              const node_int_type score = freq * (end - begin);
+              LOG(INFO) << "!!! Invalid sentencepiece '" << uw_utf8 << "' with prefix '" << uwprefix_utf8 << "' adding with score " << score << " !!!";
+              done_pieces.insert(uwprefix_utf8);
+              queue.push(std::make_pair(i, end-begin), score);
+              ++candidate_count;
+            }
+            break;
+          }
+          end--;
+        }
         continue;
       }
-
       // character-wise coverage is the default score.
-      const node_int_type freq = R[i] - L[i];
       const node_int_type score = freq * len;
-      queue.push(i, score);
+      done_pieces.insert(uw_utf8);
+      LOG(INFO) << "!!! Added '" << uw_utf8 << "' with score " << score << " !!!";
+      queue.push(std::make_pair(i,end-begin), score);
+      ++candidate_count;
     }
 
     for (const auto &p : queue.get()) {
-      const node_int_type offset = SA[L[p.first]];
-      const node_int_type len = D[p.first];
+      auto i = p.first.first, len = p.first.second;
+      const node_int_type offset = SA[L[i]];
       CHECK_GT(len, 0);
       const char32 *begin = &array[offset];
       const char32 *end = &array[offset + len];
@@ -304,13 +409,21 @@ TrainerModel::SentencePieces Trainer::MakeSeedSentencePiecesInternal() {
       CHECK(IsValidSentencePiece(uw));  // just in case.
       CHECK(!port::ContainsKey(all_chars, w));
       seed_sentencepieces.emplace_back(w, p.second);
+      max_len = std::max(max_len, len);
     }
   }
 
   ToLogProb(seed_sentencepieces.begin(), seed_sentencepieces.end());
 
-  LOG(INFO) << "Initialized " << seed_sentencepieces.size()
-            << " seed sentencepieces";
+  LOG(INFO) << "🌱 Selected " << FormatWithCommas(static_cast<int64_t>(seed_sentencepieces.size()))
+            << " initial tokens from "
+            << FormatWithCommas(candidate_count)
+            << " candidates";
+  // Supplemental details
+  LOG(INFO) << "   ├─ Source: " << FormatWithCommas(static_cast<int64_t>(sentences_.size()))
+            << " unique pretokens";
+  LOG(INFO) << "   ├─ Max candidates: " << FormatWithCommas(static_cast<int64_t>(trainer_spec_.seed_sentencepiece_size()));
+  LOG(INFO) << "   └─ Max length: " << max_len;
 
   return seed_sentencepieces;
 }
@@ -328,6 +441,20 @@ std::vector<float> Trainer::RunEStep(const TrainerModel &model, float *obj,
   for (const auto &w : sentences_) {
     all_sentence_freq += w.second;
   }
+  
+  // Log example input
+  if (all_sentence_freq > 0) {
+    LOG(INFO) << "🔍 E-Step: Processing " << FormatWithCommas(sentences_.size())
+              << " unique sentences (frequency: " << FormatWithCommas(all_sentence_freq) << ")";
+    size_t num_examples = std::min<size_t>(3, sentences_.size());
+    for (size_t i = 0; i < num_examples; ++i) {
+      LogExample("Example ", i + 1, ": \"", sentences_[i].first, "\" (freq: ", 
+                sentences_[i].second, ")");
+    }
+    if (sentences_.size() > num_examples) {
+      LogExample("... and ", sentences_.size() - num_examples, " more");
+    }
+  }
 
   // Executes E step in parallel
   for (int n = 0; n < trainer_spec_.num_threads(); ++n) {
@@ -341,7 +468,8 @@ std::vector<float> Trainer::RunEStep(const TrainerModel &model, float *obj,
         lattice.SetSentence(w);
         model.PopulateNodes(&lattice);
         const float Z = lattice.PopulateMarginal(freq, &expected[n]);
-        ntokens[n] += lattice.Viterbi().first.size();
+        auto tok = lattice.Viterbi().first;
+        ntokens[n] += tok.size() * freq; // BUG!!!!!
         CHECK(!std::isnan(Z))
             << "likelihood is NAN. Input sentence may be too long";
         objs[n] -= Z / all_sentence_freq;
@@ -372,18 +500,54 @@ TrainerModel::SentencePieces Trainer::RunMStep(
   CHECK_EQ(sentencepieces.size(), expected.size());
   TrainerModel::SentencePieces new_sentencepieces;
 
+  LOG(INFO) << "🔧 M-Step: Updating model with " << FormatWithCommas(expected.size()) 
+            << " sentence pieces";
+
+  // Track statistics
+  size_t kept = 0;
+  size_t pruned = 0;
+  float max_freq = 0;
+  float min_freq_kept = std::numeric_limits<float>::max();
+  std::string most_frequent_piece;
+  std::string least_frequent_kept_piece;
+
   float sum = 0.0;
   for (size_t i = 0; i < expected.size(); ++i) {
     const float freq = expected[i];
-
+    max_freq = std::max(max_freq, freq);
+    
     // Filter infrequent sentencepieces here.
     constexpr float kExpectedFrequencyThreshold = 0.5;
     if (freq < kExpectedFrequencyThreshold) {
+      pruned++;
       continue;
     }
 
     new_sentencepieces.emplace_back(sentencepieces[i].first, freq);
     sum += freq;
+    kept++;
+    
+    // Track the least frequent kept piece
+    if (freq < min_freq_kept) {
+      min_freq_kept = freq;
+      least_frequent_kept_piece = sentencepieces[i].first;
+    }
+    
+    // Track the most frequent piece
+    if (freq == max_freq) {
+      most_frequent_piece = sentencepieces[i].first;
+    }
+  }
+  
+  // Log M-step statistics
+  LOG(INFO) << "   📊 M-Step Statistics:";
+  LogExample("Kept ", FormatWithCommas(kept), " / ", FormatWithCommas(expected.size()), 
+            " (pruned ", FormatWithCommas(pruned), ")");
+  LogExample("Most frequent piece: \"", most_frequent_piece, "\" (freq: ", 
+            max_freq, ")");
+  if (min_freq_kept < std::numeric_limits<float>::max()) {
+    LogExample("Least frequent kept: \"", least_frequent_kept_piece, "\" (freq: ", 
+              min_freq_kept, ")");
   }
 
   // Here we do not use the original EM, but use the
@@ -575,6 +739,14 @@ util::Status Trainer::Train() {
   RETURN_IF_ERROR(model.status());
   RETURN_IF_ERROR(LoadSentences());
 
+  // [C++] Precompute totals for logging
+  int64_t total_pretoken_freq = 0;
+  int64_t total_bytes = 0;
+  for (const auto &w : sentences_) {
+    total_pretoken_freq += w.second;
+    total_bytes += static_cast<int64_t>(w.first.size()) * w.second;
+  }
+
   auto seed_sentencepieces = MakeSeedSentencePieces();
   model.SetSentencePieces(std::move(seed_sentencepieces));
 
@@ -582,13 +754,24 @@ util::Status Trainer::Train() {
     SplitSentencesByWhitespace();
   }
 
-  LOG(INFO) << "Using " << sentences_.size() << " sentences for EM training";
-
   desired_vocab_size_ = static_cast<size_t>(trainer_spec_.vocab_size() * 1.1);
+  
+  LOG(INFO) << "🚀 Starting EM training with " 
+            << FormatWithCommas(static_cast<int64_t>(sentences_.size()))
+            << " unique sentences";
+  LOG(INFO) << "   ├─ Total pretoken frequency: " << FormatWithCommas(total_pretoken_freq);
+  LOG(INFO) << "   ├─ Total bytes: " << FormatWithCommas(total_bytes);
+  LOG(INFO) << "   ├─ Target vocab size: " << trainer_spec_.vocab_size();
+  LOG(INFO) << "   ├─ Pruning to < " << desired_vocab_size_ << " pieces";
+  LOG(INFO) << "   └─ Training with " << trainer_spec_.num_sub_iterations() 
+            << " sub-iterations per EM step";
 
+  
+  int iteration_count = 0;
   while (true) {
+    ++iteration_count;
     // Sub-EM iteration.
-    for (int iter = 0; iter < trainer_spec_.num_sub_iterations(); ++iter) {
+    for (int sub_iter = 0; sub_iter < trainer_spec_.num_sub_iterations(); ++sub_iter) {
       // Executes E step
       float objective = 0.0;
       int64_t num_tokens = 0;
@@ -598,25 +781,85 @@ util::Status Trainer::Train() {
       auto new_sentencepieces = RunMStep(model, expected);
       model.SetSentencePieces(std::move(new_sentencepieces));
 
-      LOG(INFO) << "EM sub_iter=" << iter << " size=" << model.GetPieceSize()
-                << " obj=" << objective << " num_tokens=" << num_tokens
-                << " num_tokens/piece="
-                << 1.0 * num_tokens / model.GetPieceSize();
+      LOG(INFO) << "🔄 EM Iteration " << FormatWithCommas(iteration_count) << "." << (sub_iter + 1)
+                << ". Model size " << FormatWithCommas(static_cast<int64_t>(model.GetPieceSize()));
+      LOG(INFO) << "   ├─ Objective: " << std::fixed << std::setprecision(4) << objective;
+      LOG(INFO) << "   ├─ Total tokens: " << FormatWithCommas(num_tokens);
+      if (total_pretoken_freq > 0) {
+        LOG(INFO) << "   └─ Avg tokens/pretoken: " << std::fixed << std::setprecision(4)
+                  << (static_cast<double>(num_tokens) / static_cast<double>(total_pretoken_freq));
+      }
     }  // end of Sub EM iteration
+
+    // Log progress towards target vocab size
+    const size_t current_size = model.GetPieceSize();
+    const double progress = 100.0 * (1.0 - (static_cast<double>(current_size - trainer_spec_.vocab_size()) / 
+                                       (desired_vocab_size_ - trainer_spec_.vocab_size())));
+    LOG(INFO) << "   📈 Progress: " << std::fixed << std::setprecision(1) << progress 
+              << "% (" << FormatWithCommas(current_size) << " / ~" 
+              << trainer_spec_.vocab_size() << " pieces)";
 
     // Stops the iteration when the size of sentences reaches to the
     // desired symbol size.
-    if (model.GetPieceSize() <= desired_vocab_size_) {
+    if (current_size <= desired_vocab_size_) {
+      LOG(INFO) << "🎯 Reached target vocabulary size of ~" << trainer_spec_.vocab_size() 
+                << " pieces (actual: " << current_size << ")";
+      LOG(INFO) << "🎯 Target vocabulary size for EM iterations reached";
+      LOG(INFO) << "   ├─ Current: " << FormatWithCommas(static_cast<int64_t>(model.GetPieceSize()));
+      LOG(INFO) << "   └─ Target:  " << FormatWithCommas(static_cast<int64_t>(desired_vocab_size_));
       break;
     }
 
     // Prunes pieces.
+    const size_t target_size = std::max<size_t>(
+        desired_vocab_size_, static_cast<size_t>(trainer_spec_.shrinking_factor() * current_size));
     auto new_sentencepieces = PruneSentencePieces(model);
+    const size_t new_size = new_sentencepieces.size();
+    // Python-identical pruning summary
+    LOG(INFO) << "✂️  Pruning vocabulary from " << FormatWithCommas(static_cast<int64_t>(current_size))
+              << " to target " << FormatWithCommas(static_cast<int64_t>(target_size))
+              << " -> new vocab size " << FormatWithCommas(static_cast<int64_t>(new_size))
+              << " based on shrinking factor " << std::fixed << std::setprecision(2)
+              << trainer_spec_.shrinking_factor();
+    LOG(INFO) << "   └─ Desired pre-final size: "
+              << FormatWithCommas(static_cast<int64_t>(desired_vocab_size_));
     model.SetSentencePieces(std::move(new_sentencepieces));
   }  // end of EM iteration
 
   // Finally, adjusts the size of sentencepices to be |vocab_size|.
+  const size_t pre_final_size = model.GetPieceSize();
   final_pieces_ = FinalizeSentencePieces(model);
+  int64_t final_tokens = 0;
+  float final_objective = 0.0f;
+  {
+    TrainerModel final_model(trainer_spec_, normalizer_spec_);
+    final_model.SetSentencePieces(TrainerModel::SentencePieces(final_pieces_.begin(), final_pieces_.end()));
+    (void)RunEStep(final_model, &final_objective, &final_tokens);
+  }
+
+  // Log final statistics
+  const double avg_tokens = static_cast<double>(final_tokens) / static_cast<double>(total_pretoken_freq);
+  const double compression_ratio = static_cast<double>(total_bytes) / static_cast<double>(final_tokens);
+
+  LOG(INFO) << "🎉 Training completed in " << iteration_count << " iterations!";
+  LOG(INFO) << "  📊 Final Statistics:";
+  LOG(INFO) << "   ├─ Final objective: " << std::fixed << std::setprecision(4) << final_objective;
+  LOG(INFO) << "   ├─ Vocabulary size: " << FormatWithCommas(final_pieces_.size()) << " pieces";
+  LOG(INFO) << "   ├─ Total tokens: " << FormatWithCommas(final_tokens);
+  LOG(INFO) << "   ├─ Total pretokens: " << FormatWithCommas(total_pretoken_freq);
+  LOG(INFO) << "   ├─ Total bytes: " << FormatWithCommas(total_bytes);
+  LOG(INFO) << "   ├─ Avg tokens/pretoken: " << std::fixed << std::setprecision(4) << avg_tokens;
+  LOG(INFO) << "   └─ Compression ratio: " << std::fixed << std::setprecision(2) 
+            << compression_ratio << " bytes/token";
+
+  // [C++] Example final pieces (showing extremes by score)
+  {
+    std::vector<std::pair<std::string, float>> examples;
+    examples.reserve(final_pieces_.size());
+    for (const auto &p : final_pieces_) examples.emplace_back(p.first, p.second);
+    LOG(INFO) << "   🔤 Example pieces (showing extremes):";
+    LogExamples(examples, "score", 5);
+  }
 
   return Save();
 }

@@ -109,6 +109,15 @@ class Trainer : public TrainerInterface {
   // break the main training loop. desired_vocab_size_ = 1.1 * vocab_size_
   // for now.
   int desired_vocab_size_;
+
+  // Helper function to log examples with consistent formatting
+  template <typename... Args>
+  void LogExample(Args... args) const {
+    std::ostringstream ss;
+    ss << "   ├─ ";
+    (ss << ... << args);
+    LOG(INFO) << ss.str();
+  }
 };
 }  // namespace unigram
 }  // namespace sentencepiece
