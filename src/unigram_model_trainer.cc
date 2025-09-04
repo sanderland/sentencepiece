@@ -363,15 +363,18 @@ TrainerModel::SentencePieces Trainer::MakeSeedSentencePiecesInternal() {
       }
 
       if (len <= 1 || offset >= array.size() || offset + len >= array.size()) {
+        printf("!!! Skipping substring with length %d at offset %d and len %d !!!\n", len, offset, len);
         continue;
       }
       // Skips if a substring contains a sentence boundary.
       if (std::find(begin, end, kSentenceBoundary) != end) {
+        printf("!!! Skipping substring with sentence boundary at offset %d and len %d !!!\n", offset, len);
         continue;
       }
       const node_int_type freq = R[i] - L[i];
 
       if (!IsValidSentencePiece(uw)) {
+        printf("!!! Invalid sentencepiece '%s' !!!\n", uw_utf8.c_str());
         while (end - begin > 1) {
           auto uwprefix = UnicodeText(begin, end);
           auto uwprefix_utf8 = string_util::UnicodeTextToUTF8(uwprefix);

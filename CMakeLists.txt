@@ -1,3 +1,31 @@
+cmake_minimum_required(VERSION 3.15)
+project(minimal_spm_trainer_seed CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Remove system Protobuf to avoid version conflicts; use bundled lite headers
+# find_package(Protobuf REQUIRED)
+
+# include_directories(${Protobuf_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/builtin_pb)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/protobuf-lite)
+
+find_package(Threads REQUIRED)
+
+add_executable(minimal_spm_trainer_seed
+  minimal_spm_trainer_seed.cc
+)
+
+target_link_libraries(minimal_spm_trainer_seed PRIVATE Threads::Threads)
+target_compile_definitions(minimal_spm_trainer_seed PRIVATE HAVE_PTHREAD=1 _USE_INTERNAL_STRING_VIEW)
+target_compile_options(minimal_spm_trainer_seed PRIVATE -pthread)
+
+# target_link_libraries(minimal_spm_trainer_seed ${Protobuf_LIBRARIES})
+
 # Copyright 2018 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -190,6 +218,9 @@ endif()
 
 add_subdirectory(src)
 add_subdirectory(third_party)
+
+# Link minimal sample against sentencepiece libraries
+target_link_libraries(minimal_spm_trainer_seed PRIVATE sentencepiece sentencepiece_train)
 
 set(CPACK_SOURCE_GENERATOR "TXZ")
 set(CPACK_GENERATOR "7Z")

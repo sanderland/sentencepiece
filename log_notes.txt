@@ -7,13 +7,13 @@ unigram_model_trainer.cc(426) LOG(INFO)    └─ Max length: 16
 
 unigram_model_trainer.cc(843) LOG(INFO) 🎉 Training completed in 5 iterations!
 unigram_model_trainer.cc(844) LOG(INFO)   📊 Final Statistics:
-unigram_model_trainer.cc(845) LOG(INFO)    ├─ Final objective: 9.2787
-unigram_model_trainer.cc(846) LOG(INFO)    ├─ Vocabulary size: 1,997 pieces
-unigram_model_trainer.cc(847) LOG(INFO)    ├─ Total tokens: 27,495
-unigram_model_trainer.cc(848) LOG(INFO)    ├─ Total pretokens: 4,288
-unigram_model_trainer.cc(849) LOG(INFO)    ├─ Total bytes: 375,964
-unigram_model_trainer.cc(850) LOG(INFO)    ├─ Avg tokens/pretoken: 6.4121
-unigram_model_trainer.cc(851) LOG(INFO)    └─ Compression ratio: 13.67 bytes/token
+unigram_model_trainer.cc(846) LOG(INFO)    ├─ Final objective: 9.2787
+unigram_model_trainer.cc(847) LOG(INFO)    ├─ Vocabulary size: 1,997 pieces
+unigram_model_trainer.cc(848) LOG(INFO)    ├─ Total tokens: 77,045
+unigram_model_trainer.cc(849) LOG(INFO)    ├─ Total pretokens: 4,288
+unigram_model_trainer.cc(850) LOG(INFO)    ├─ Total bytes: 375,964
+unigram_model_trainer.cc(851) LOG(INFO)    ├─ Avg tokens/pretoken: 17.9676
+unigram_model_trainer.cc(852) LOG(INFO)    └─ Compression ratio: 4.88 bytes/token
 
 SWIFT FIX
 
@@ -22,16 +22,15 @@ unigram_model_trainer.cc(423) LOG(INFO)    ├─ Source: 437 unique pretokens
 unigram_model_trainer.cc(425) LOG(INFO)    ├─ Max candidates: 1,000,000
 unigram_model_trainer.cc(426) LOG(INFO)    └─ Max length: 16
 
-unigram_model_trainer.cc(844) LOG(INFO)   📊 Final Statistics:
-unigram_model_trainer.cc(845) LOG(INFO)    ├─ Final objective: 9.0379
-unigram_model_trainer.cc(846) LOG(INFO)    ├─ Vocabulary size: 1,021 pieces
-unigram_model_trainer.cc(847) LOG(INFO)    ├─ Total tokens: 7,603
-unigram_model_trainer.cc(848) LOG(INFO)    ├─ Total pretokens: 437
-unigram_model_trainer.cc(849) LOG(INFO)    ├─ Total bytes: 84,251
-unigram_model_trainer.cc(850) LOG(INFO)    ├─ Avg tokens/pretoken: 17.3982
-unigram_model_trainer.cc(851) LOG(INFO)    └─ Compression ratio: 11.08 bytes/token
-
------
+unigram_model_trainer.cc(844) LOG(INFO) 🎉 Training completed in 5 iterations!
+unigram_model_trainer.cc(845) LOG(INFO)   📊 Final Statistics:
+unigram_model_trainer.cc(846) LOG(INFO)    ├─ Final objective: 9.0379
+unigram_model_trainer.cc(847) LOG(INFO)    ├─ Vocabulary size: 1,021 pieces
+unigram_model_trainer.cc(848) LOG(INFO)    ├─ Total tokens: 16,166 <- lower than all pyunigram variants!
+unigram_model_trainer.cc(849) LOG(INFO)    ├─ Total pretokens: 437
+unigram_model_trainer.cc(850) LOG(INFO)    ├─ Total bytes: 84,251
+unigram_model_trainer.cc(851) LOG(INFO)    ├─ Avg tokens/pretoken: 36.9931
+unigram_model_trainer.cc(852) LOG(INFO)    └─ Compression ratio: 5.21 bytes/token
 
 BOTCHAN NONFIX
 
@@ -41,14 +40,14 @@ unigram_model_trainer.cc(425) LOG(INFO)    ├─ Max candidates: 1,000,000
 unigram_model_trainer.cc(426) LOG(INFO)    └─ Max length: 15
 trainer_interface.cc(600) LOG(INFO) Tokenizing input sentences with whitespace: 4288
 
-unigram_model_trainer.cc(844) LOG(INFO)   📊 Final Statistics:
-unigram_model_trainer.cc(845) LOG(INFO)    ├─ Final objective: 9.3324
-unigram_model_trainer.cc(846) LOG(INFO)    ├─ Vocabulary size: 1,997 pieces
-unigram_model_trainer.cc(847) LOG(INFO)    ├─ Total tokens: 26,981
-unigram_model_trainer.cc(848) LOG(INFO)    ├─ Total pretokens: 4,288
-unigram_model_trainer.cc(849) LOG(INFO)    ├─ Total bytes: 375,964
-unigram_model_trainer.cc(850) LOG(INFO)    ├─ Avg tokens/pretoken: 6.2922
-unigram_model_trainer.cc(851) LOG(INFO)    └─ Compression ratio: 13.93 bytes/token
+unigram_model_trainer.cc(845) LOG(INFO)   📊 Final Statistics:
+unigram_model_trainer.cc(846) LOG(INFO)    ├─ Final objective: 9.3324
+unigram_model_trainer.cc(847) LOG(INFO)    ├─ Vocabulary size: 1,997 pieces
+unigram_model_trainer.cc(848) LOG(INFO)    ├─ Total tokens: 77,090
+unigram_model_trainer.cc(849) LOG(INFO)    ├─ Total pretokens: 4,288
+unigram_model_trainer.cc(850) LOG(INFO)    ├─ Total bytes: 375,964
+unigram_model_trainer.cc(851) LOG(INFO)    ├─ Avg tokens/pretoken: 17.9781
+unigram_model_trainer.cc(852) LOG(INFO)    └─ Compression ratio: 4.88 bytes/token
 
 SWIFT NONFIX
 
@@ -58,12 +57,64 @@ unigram_model_trainer.cc(425) LOG(INFO)    ├─ Max candidates: 1,000,000
 unigram_model_trainer.cc(426) LOG(INFO)    └─ Max length: 15
 trainer_interface.cc(600) LOG(INFO) Tokenizing input sentences with whitespace: 437
 
-unigram_model_trainer.cc(844) LOG(INFO)   📊 Final Statistics:
-unigram_model_trainer.cc(845) LOG(INFO)    ├─ Final objective: 10.3070
-unigram_model_trainer.cc(846) LOG(INFO)    ├─ Vocabulary size: 1,021 pieces
-unigram_model_trainer.cc(847) LOG(INFO)    ├─ Total tokens: 7,543
-unigram_model_trainer.cc(848) LOG(INFO)    ├─ Total pretokens: 437
-unigram_model_trainer.cc(849) LOG(INFO)    ├─ Total bytes: 84,251
-unigram_model_trainer.cc(850) LOG(INFO)    ├─ Avg tokens/pretoken: 17.2609
-unigram_model_trainer.cc(851) LOG(INFO)    └─ Compression ratio: 11.17 bytes/token
+unigram_model_trainer.cc(845) LOG(INFO)   📊 Final Statistics:
+unigram_model_trainer.cc(846) LOG(INFO)    ├─ Final objective: 10.3070
+unigram_model_trainer.cc(847) LOG(INFO)    ├─ Vocabulary size: 1,021 pieces
+unigram_model_trainer.cc(848) LOG(INFO)    ├─ Total tokens: 18,734
+unigram_model_trainer.cc(849) LOG(INFO)    ├─ Total pretokens: 437
+unigram_model_trainer.cc(850) LOG(INFO)    ├─ Total bytes: 84,251
+unigram_model_trainer.cc(851) LOG(INFO)    ├─ Avg tokens/pretoken: 42.8696
+unigram_model_trainer.cc(852) LOG(INFO)    └─ Compression ratio: 4.50 bytes/token
+
+
+PYUNIGRAM 10x <- best compression!
+
+
+[   0.0s][train_unigram] 🌱 Selected 10,240 initial tokens from 33,795 candidates
+[   0.0s][train_unigram]    ├─ Source: 2,654 unique and 10,522 total pretokens
+[   0.0s][train_unigram]    └─ Max length: 16
+
+[   0.4s][train_unigram] 🎉 Training completed successfully! Objective: 9.2073
+[   0.4s][train_unigram]   📊 Token Removal Statistics:
+[   0.4s][train_unigram]    ├─ M Step Low Count      7,878 tokens in steps [7677, 197, 3, 1, 0, 0, 0, 0]
+[   0.4s][train_unigram]    ├─ Prune/Zero Count        102 tokens in steps [95, 6, 1]
+[   0.4s][train_unigram]    ├─ Prune/Loss            1,134 tokens in steps [536, 466, 132]
+[   0.4s][train_unigram]    ├─ Finalize                102 tokens
+[   0.4s][train_unigram]   📊 Compression Statistics:
+[   0.4s][train_unigram]    ├─ Total tokens: 16,232
+[   0.4s][train_unigram]    ├─ Total pretokens: 10,522
+[   0.4s][train_unigram]    ├─ Total bytes: 62,770
+[   0.4s][train_unigram]    ├─ Avg bytes/token: 3.8671
+[   0.4s][train_unigram]    └─ Avg tokens/pretoken: 1.5427
+
+PYUNIGRAM 20x <- lowest objective!
+
+[   0.4s][train_unigram] 🎉 Training completed successfully! Objective: 9.1801
+[   0.4s][train_unigram]   📊 Token Removal Statistics:
+[   0.4s][train_unigram]    ├─ M Step Low Count     17,835 tokens in steps [17753, 82, 0, 0, 0, 0, 0, 0]
+[   0.4s][train_unigram]    ├─ Prune/Zero Count         13 tokens in steps [13, 0, 0]
+[   0.4s][train_unigram]    ├─ Prune/Loss            1,506 tokens in steps [688, 525, 293]
+[   0.4s][train_unigram]    ├─ Finalize                102 tokens
+[   0.4s][train_unigram]   📊 Compression Statistics:
+[   0.4s][train_unigram]    ├─ Total tokens: 17,770
+[   0.4s][train_unigram]    ├─ Total pretokens: 10,522
+[   0.4s][train_unigram]    ├─ Total bytes: 62,770
+[   0.4s][train_unigram]    ├─ Avg bytes/token: 3.5324
+[   0.4s][train_unigram]    └─ Avg tokens/pretoken: 1.6888
+
+
+PYUNIGRAM 4x
+[   0.3s][train_unigram] 🎉 Training completed successfully! Objective: 9.8803
+[   0.3s][train_unigram]   📊 Token Removal Statistics:
+[   0.3s][train_unigram]    ├─ M Step Low Count      2,438 tokens in steps [2205, 232, 0, 1, 0, 0]
+[   0.3s][train_unigram]    ├─ Prune/Zero Count        124 tokens in steps [117, 7]
+[   0.3s][train_unigram]    ├─ Prune/Loss              408 tokens in steps [337, 71]
+[   0.3s][train_unigram]    ├─ Finalize                102 tokens
+[   0.3s][train_unigram]   📊 Compression Statistics:
+[   0.3s][train_unigram]    ├─ Total tokens: 16,914
+[   0.3s][train_unigram]    ├─ Total pretokens: 10,522
+[   0.3s][train_unigram]    ├─ Total bytes: 62,770
+[   0.3s][train_unigram]    ├─ Avg bytes/token: 3.7111
+[   0.3s][train_unigram]    └─ Avg tokens/pretoken: 1.6075
+
 
